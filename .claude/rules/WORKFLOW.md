@@ -2,38 +2,25 @@
 
 ### Project Design Workflow
 
-```dot
-digraph G {
-    rankdir=TB;
-    node [shape=box];
-
-    "Dose PROJECT_DESIGN.md exist?" [shape=diamond]
-    "Revision?" [shape=diamond]
-    "Is related to scientific stuff?" [shape=diamond]
-    "Architecture review needed?" [shape=diamond]
-
-    "PROJECT Idea" -> "Dose PROJECT_DESIGN.md exist?"
-    "Dose PROJECT_DESIGN.md exist?" -> "Start brainstorm based on PROJECT/Revision idea" [label=No]
-    "Start brainstorm based on PROJECT/Revision idea" -> "Create/Update PROJECT_DESIGN.md"
-    "Create/Update PROJECT_DESIGN.md" -> "Architecture review needed?"
-    "Architecture review needed?" -> "Start arch-review" [label=Yes]
-    "Start arch-review" -> "Create ARCH-REVIEW.md"
-    "Create ARCH-REVIEW.md" -> "Create/Update PROJECT_DESIGN.md" [label=Update]
-    "Architecture review needed?" -> "Is related to scientific stuff?" [label=No]
-    "Is related to scientific stuff?" -> "Create/Update TODO.md" [label=No]
-
-    "Is related to scientific stuff?" -> "Start sci-review" [label=Yes]
-    "Start sci-review" -> "Create SCI-REVIEW.md"
-    "Create SCI-REVIEW.md" -> "Create/Update PROJECT_DESIGN.md" [label=Update]
-
-
-    "Create/Update TODO.md" -> "Revision?"
-    "Revision?" -> "Start brainstorm based on PROJECT/Revision idea" [label="Yes. Ask for revision idea"]
-    "Revision?" -> "End of session" [label=No]
-
-    "Dose PROJECT_DESIGN.md exist?" -> "Read PROJECT_DESIGN.md" [label=Yes]
-    "Read PROJECT_DESIGN.md" -> "Start brainstorm based on PROJECT/Revision idea"
-}
+```mermaid
+flowchart TD
+    A[PROJECT Idea] --> B{Does PROJECT_DESIGN.md exist?}
+    B -- No --> C[Start brainstorm based on PROJECT/Revision idea]
+    B -- Yes --> D[Read PROJECT_DESIGN.md]
+    D --> C
+    C --> E[Create/Update PROJECT_DESIGN.md]
+    E --> F{Architecture review needed?}
+    F -- Yes --> G[Start arch-review]
+    G --> H[Create ARCH-REVIEW.md]
+    H -- Update --> E
+    F -- No --> I{Is related to scientific stuff?}
+    I -- Yes --> J[Start sci-review]
+    J --> K[Create SCI-REVIEW.md]
+    K -- Update --> E
+    I -- No --> L[Create/Update TODO.md]
+    L --> M{Revision?}
+    M -- "Yes: Ask for revision idea" --> C
+    M -- No --> N[End of session]
 ```
 
 <caution>
@@ -44,79 +31,97 @@ digraph G {
 
 ### Implementation Workflow
 
-```dot
-digraph G {
-rankdir=TB;
-node [shape=box];
+```mermaid
+flowchart TD
+    A[Implementation Idea] --> B{Does CODEBASE_MAP.md exist?}
 
-    "Does CODEBASE_MAP.md exist?" [shape=diamond]
-    "Revision for the design?" [shape=diamond]
-    "Revision for the plan?" [shape=diamond]
-    "Algorithmic/scientific content?" [shape=diamond]
-    "Any Critical or Important issue?" [shape=diamond]
-    "Continue?" [shape=diamond]
-    "Review?" [shape=diamond]
+    subgraph Explore
+        B -- Yes --> C[Read CODEBASE_MAP.md and skip exploring]
+        B -- No --> D["Create CODEBASE_MAP.md (Using graph-generator skill --map)"]
+        D --> C
+    end
 
-    "Implementation Idea" -> "Does CODEBASE_MAP.md exist?"
-    subgraph cluster_1{
-        style=dashed
-        label=Explore
+    subgraph Create specification
+        C --> E[Use brainstorming skill]
+        E --> F[DESIGN.md]
+        F --> G{Revision for the design?}
+        G -- No --> H[Use arch-review skill]
+        H --> I[ARCH-REVIEW.md]
+        I --> J[Use planning skill]
+        J --> K["PLAN.md, TASK.md, NEXT_STEP.md"]
+        K --> L{Revision for the plan?}
+    end
 
-        "Does CODEBASE_MAP.md exist?" -> "Read CODEBASE_MAP.md and skip exploring" [label=Yes]
-        "Does CODEBASE_MAP.md exist?" -> "Create CODEBASE_MAP.md (Using graph-generator skill --map)" [label=No]
-        "Create CODEBASE_MAP.md (Using graph-generator skill --map)" -> "Read CODEBASE_MAP.md and skip exploring"
+    subgraph Sci-Review
+        L -- No --> M{Algorithmic/scientific content?}
+        M -- Yes --> N[Use sci-review skill]
+        N --> O[SCI-REVIEW.md]
+        O --> P[Use subagent-driven-development skill]
+    end
 
-    }
+    subgraph Implementation
+        M -- No --> P
+        P --> Q{Review?}
+        Q -- Yes --> R["Use code-review skill (subagent)"]
+        Q -- No --> S[IMPLEMENTATION_REPORT.md]
+        R --> T[CODE-REVIEW.md]
+        T --> U{Any Critical or Important issue?}
+        U -- Yes --> V{Continue?}
+        V -- Yes --> J
+        V -- No --> S
+        U -- No --> S
+        S --> W[Update CODEBASE_MAP.md]
+    end
 
-    subgraph cluster_3{
-        style=dashed
-        label="Create specification"
-
-        "Read CODEBASE_MAP.md and skip exploring" -> "Use brainstorming skill"
-        "Use brainstorming skill" -> "DESIGN.md"
-        "DESIGN.md" -> "Revision for the design?"
-        "Revision for the design?" -> "Use arch-review skill" [label=No]
-        "Use arch-review skill" -> "ARCH-REVIEW.md"
-        "ARCH-REVIEW.md" -> "Use planning skill"
-        "Use planning skill" -> "PLAN.md, TASK.md, NEXT_STEP.md"
-        "PLAN.md, TASK.md, NEXT_STEP.md" -> "Revision for the plan?"
-    }
-
-    subgraph cluster_4{
-        style=dashed
-        label="Sci-Review (conditional)"
-
-        "Revision for the plan?" -> "Algorithmic/scientific content?" [label=No]
-        "Algorithmic/scientific content?" -> "Use sci-review skill" [label=Yes]
-        "Use sci-review skill" -> "SCI-REVIEW.md"
-        "SCI-REVIEW.md" -> "Use subagent-driven-development skill"
-    }
-
-    subgraph cluster_2 {
-        style=dashed
-        label="Implementation"
-
-        "Algorithmic/scientific content?" -> "Use subagent-driven-development skill" [label=No]
-        "Use subagent-driven-development skill" -> "Review?"
-        "Review?" -> "Use code-review skill (subagent)" [label=Yes]
-        "Review?" -> "IMPLEMENTATION_REPORT.md" [label=No]
-        "Use code-review skill (subagent)" -> "CODE-REVIEW.md"
-        "CODE-REVIEW.md" -> "Any Critical or Important issue?"
-        "Any Critical or Important issue?" -> "Continue?" [label=Yes]
-        "Continue?" -> "Use planning skill" [label=Yes]
-        "Continue?" -> "IMPLEMENTATION_REPORT.md" [label=No]
-        "Any Critical or Important issue?" -> "IMPLEMENTATION_REPORT.md" [label=No]
-        "IMPLEMENTATION_REPORT.md" -> "Update CODEBASE_MAP.md"
-    }
-
-    "Revision for the design?" -> "End of session" [label=Yes]
-    "Revision for the plan?" -> "End of session" [label=Yes]
-    "Update CODEBASE_MAP.md" -> "Update pipelines/ (Using graph-generator skill)"
-    "Update pipelines/ (Using graph-generator skill)" -> "Update TODO.md"
-    "Update TODO.md" -> "End of session"
-}
+    G -- Yes --> X[End of session]
+    L -- Yes --> X
+    W --> Y["Update pipelines/ (Using graph-generator skill)"]
+    Y --> Z[Update TODO.md]
+    Z --> X
 ```
 
 <caution>
 - Remove the worktree if it is created for parallel tasks after the implmentation.
+</caution>
+
+### Worktree Cleanup Workflow
+
+After each subagent completes work in a worktree, clean up immediately. After all implementation is done, run a final sweep.
+
+```mermaid
+flowchart TD
+    A[Subagent task completed] --> B[Merge worktree branch into main]
+    B --> C["Remove worktree (git worktree remove)"]
+    C --> D["Delete branch (git branch -d)"]
+    D --> E[Next task or final sweep]
+    E --> F{All tasks done?}
+    F -- No --> G[Continue implementation]
+    F -- Yes --> H["Final sweep: git worktree list"]
+    H --> I{Any leftover worktrees?}
+    I -- Yes --> J["Remove each with git worktree remove"]
+    J --> K["Remove .claude/worktrees/ directory"]
+    I -- No --> K
+    K --> L[Clean]
+```
+
+**Commands reference:**
+
+```bash
+# List all worktrees
+git worktree list
+
+# Remove a specific worktree (after merging its branch)
+git worktree remove .claude/worktrees/<agent-name>
+
+# Delete the merged branch
+git branch -d worktree-agent-<id>
+
+# Final sweep: remove leftover directory
+rm -rf .claude/worktrees/
+```
+
+<caution>
+- Always merge the worktree branch before removing it.
+- Always clean up worktrees before ending a session.
+- Run `git worktree list` as a final check — only the main working tree should remain.
 </caution>
