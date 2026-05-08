@@ -1,6 +1,6 @@
 ---
 name: planning
-description: Use when you have a specifications or requirements for a multi-step task, before touching the codes or the documents.
+description: Use when you have a specifications or requirements for a multi-step task, before touching the codes or the documents. Produces PLAN.md, TASK.md, and NEXT_STEP.md, and runs a test-design-review loop until the plan's test coverage is verified Ready.
 ---
 
 # Planning
@@ -12,8 +12,24 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Announce at start**: "I'm using the planning skill."
 
 <HARD-GATE>
-- Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a plan and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+- Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until (a) you have presented a plan, (b) the test-design coverage loop has terminated with verdict `Ready`, and (c) the user has approved the final plan. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
+
+## End-to-end flow
+
+```mermaid
+flowchart TD
+    A[Receive specifications] --> B[Draft PLAN.md · TASK.md · NEXT_STEP.md]
+    B --> C[Invoke test-design-review skill on docs/&lt;topic&gt;/]
+    C --> D[Read TEST-DESIGN-REVIEW.md]
+    D --> E{Verdict == Ready?<br/>0 Critical · ≤ 2 Important}
+    E -->|No| F[Revise TASK.md · PLAN.md per report]
+    F --> C
+    E -->|Yes| G[Final docs ready]
+    G --> H[Execution handoff prompt]
+```
+
+The loop edits files **in place** under `docs/<topic>/`. The final docs are the iterated artifacts, not the first draft.
 
 ## Saving Artifacts
 
@@ -143,9 +159,65 @@ Expected: [describe what should appear or what behavior to confirm]
 [1-2 sentences explaining why this is the logical next step based on what was just built]
 ```
 
+## Test Design Coverage Loop (mandatory before handoff)
+
+Once `PLAN.md`, `TASK.md`, and `NEXT_STEP.md` exist on disk, you must verify the plan's **test design completeness** against the project's TDD standard before handing off to implementation. Test gaps caught at the plan stage cost orders of magnitude less than gaps caught after code ships.
+
+### Preconditions
+
+- `.claude/rules/TDD.md` exists at the codebase root.
+  - **If absent:** announce `"Test design coverage loop skipped — .claude/rules/TDD.md not found."` and proceed directly to Execution Handoff. Do not block planning on a missing standard.
+
+### Loop procedure
+
+```mermaid
+flowchart TD
+    Start([Docs saved]) --> Iter[Iteration N starts]
+    Iter --> Invoke[Invoke test-design-review skill<br/>codebase = repo root<br/>target = docs/&lt;topic&gt;/<br/>output = docs/&lt;topic&gt;/TEST-DESIGN-REVIEW.md]
+    Invoke --> Read[Read TEST-DESIGN-REVIEW.md<br/>Extract Verdict + gap counts + Top 3 actions]
+    Read --> Decide{Verdict?}
+    Decide -->|Ready<br/>0 Critical · ≤ 2 Important| Done([Exit loop · proceed to handoff])
+    Decide -->|Needs fixes| Cap{Iteration < 3?}
+    Decide -->|Blocked| Halt([Halt: surface blocker to user])
+    Cap -->|Yes| Revise[Revise TASK.md / PLAN.md<br/>per Critical & Important recommendations]
+    Cap -->|No| Escalate([Iteration cap hit · ask user how to proceed])
+    Revise --> Iter
+```
+
+**Steps each iteration:**
+
+1. Dispatch the `test-design-review` skill with:
+   - **Codebase path**: the project root.
+   - **Target items**: `docs/<topic>/PLAN.md` and `docs/<topic>/TASK.md` (and any associated source paths the plan touches).
+   - **Output path** (override default): `docs/<topic>/TEST-DESIGN-REVIEW.md`.
+2. Read the resulting `TEST-DESIGN-REVIEW.md`. Extract the **Verdict**, gap counts, and the **Top 3 actions** block.
+3. Apply the verdict rule:
+   - **`Ready`** (0 Critical, ≤ 2 Important) → exit the loop. Proceed to Execution Handoff.
+   - **`Needs fixes`** → revise the plan and loop again.
+   - **`Blocked`** → halt the loop. Surface the blocker to the user (typically a missing standard or unidentifiable target) and decide together how to proceed.
+4. When revising, edit `TASK.md` first (most gaps are missing test tasks); touch `PLAN.md` only if the gap is architectural (e.g., a whole test category missing from the strategy section). Each Critical and Important recommendation must map to a concrete change — added test tasks, new boundary cases, mutation-testing setup tasks, security-test tasks, etc.
+
+### Termination
+
+- **Convergence:** verdict becomes `Ready`. The loop exits and you present the final docs.
+- **Iteration cap:** after 3 iterations without convergence, stop and ask the user: *"After N iterations, the plan still has X Critical / Y Important gaps. Do you want to (a) accept the remaining gaps and proceed, (b) iterate further with my guidance on a specific gap, or (c) revisit the requirements?"*
+- **Blocked:** the loop halts immediately. Do not attempt revisions until the blocker is resolved.
+
+### What changes during revision
+
+| Gap class | Typical revision |
+|---|---|
+| **Critical** | Add the missing required test category as new tasks in `TASK.md` (e.g., a security-test task for a payment flow), plus updates to the relevant section of `PLAN.md` if it's a structural omission. |
+| **Important** | Add boundary / edge-case tasks, configure missing tooling (coverage, mutation), strengthen weak assertions in planned tests. |
+| **Minor** | Optional. Track in `NEXT_STEP.md` or note them in `PLAN.md` for follow-up; do not block on these. |
+
+The `TEST-DESIGN-REVIEW.md` report from the **final** iteration stays committed alongside the plan as a record that the gate was satisfied.
+
+---
+
 ## Execution Handoff
 
-After saving `PLAN.md`, `TASK.md`, and `NEXT_STEP.md`:
+After the test-design coverage loop has terminated with `Verdict: Ready` (or after the user explicitly accepted remaining gaps at the iteration cap):
 
 ### Sci-Review Detection
 
