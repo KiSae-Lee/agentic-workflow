@@ -9,6 +9,30 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
 
+<HARD-GATE>
+This skill is NOT complete until BOTH output artifacts exist on disk:
+1. `docs/<topic>/CODE-REVIEW.md` — produced by dispatching the `code-review` skill
+2. `docs/<topic>/IMPLEMENTATION-REPORT.md` — written by you after code review
+
+After all implementation tasks finish, you MUST produce these artifacts before reporting completion to the user or returning control to control-tower. If the user interrupts or changes direction mid-execution, resume artifact production when control returns. No exceptions.
+</HARD-GATE>
+
+## Bootstrap: Read Rules
+
+Before dispatching implementer subagents, read these rules and include relevant sections in their prompts:
+
+| Rule file | Why |
+|---|---|
+| `.claude/skills/control-tower/rules/ARCHITECTURE.md` | Clean Architecture layers implementers must follow |
+| `.claude/skills/control-tower/rules/CONVENTIONS.md` | Git, naming, and tooling conventions for commits and code |
+| `.claude/skills/control-tower/rules/DOCUMENTATION.md` | Doc standards for code the implementers write |
+| `.claude/skills/control-tower/rules/OBSERVABILITY.md` | Logging and tracing standards for production code |
+| `.claude/skills/control-tower/rules/KEEP_IN_MIND.md` | Interface design, testability, mocking boundaries |
+| `.claude/skills/control-tower/rules/TDD.md` | TDD methodology bundled into implementer prompts |
+| `.claude/skills/control-tower/rules/AWARENESS.md` | Integration lessons to avoid known pitfalls |
+
+**Procedure:** Read all listed rule files. Pass relevant content to implementer and reviewer subagents as context.
+
 ## When to Use
 
 - You have an implementation plan (from planning skill)
@@ -68,8 +92,9 @@ Wave 3 (parallel): Task 5, Task 6          ← independent, but depend on Task 4
 
 Each wave completes (including reviews and merges) before the next wave begins.
 
-5. **Final review** — Dispatch code-review skill for the entire implementation, saving report as `CODE-REVIEW.md`
-6. **Implementation report** — Write `IMPLEMENTATION_REPORT.md` summarizing what was built, files changed, and any open concerns
+5. **Update TODO.md** — Read `docs/<topic>/TODO.md` and mark completed items as `[x]`. Add any new items discovered during implementation. Do NOT remove deferred items.
+6. **Final review** — Dispatch code-review skill for the entire implementation (report saved to `docs/<topic>/CODE-REVIEW.md`)
+7. **Implementation report** — Write `docs/<topic>/IMPLEMENTATION-REPORT.md` summarizing what was built, files changed, and any open concerns
 
 ## Prompt Templates
 
@@ -81,8 +106,8 @@ Each wave completes (including reviews and merges) before the next wave begins.
 
 At the end of execution, these files must exist:
 
-- **`CODE-REVIEW.md`** — Final code review report from code-review skill
-- **`IMPLEMENTATION_REPORT.md`** — Summary of implementation: what was built, files changed, test results, open concerns
+- **`docs/<topic>/CODE-REVIEW.md`** — Final code review report
+- **`docs/<topic>/IMPLEMENTATION-REPORT.md`** — Summary of implementation: what was built, files changed, test results, open concerns
 
 ## Example Workflow
 
@@ -141,16 +166,42 @@ You: I'm using Subagent-Driven Development to execute this plan.
 
 --- Final ---
 
+[Update TODO.md — mark completed items, add discovered items]
 [Dispatch code-review skill for entire implementation → CODE-REVIEW.md]
-[Write IMPLEMENTATION_REPORT.md]
+[Write IMPLEMENTATION-REPORT.md]
 
 Done!
 ```
+
+## Terminal State
+
+<HARD-GATE>
+Before announcing completion or returning control to the caller, verify BOTH artifacts exist:
+
+```
+docs/<topic>/CODE-REVIEW.md          — exists? → yes/no
+docs/<topic>/IMPLEMENTATION-REPORT.md — exists? → yes/no
+```
+
+If either is missing, produce it NOW. Do not skip because:
+- The user said "don't commit" (artifacts are docs, not commits)
+- The user interrupted mid-flow (resume artifact production)
+- All tasks are marked complete (task completion ≠ skill completion)
+- You ran out of things to implement (the final review IS part of implementation)
+</HARD-GATE>
+
+After BOTH artifacts exist, the workflow continues with:
+
+1. **Update CODEBASE_MAP.md** — reflect the new code structure
+2. **Update TODO.md** — mark completed items, add any new items discovered
+
+These updates happen in the main conversation, not via subagent. Subagent-driven-development ends after producing its output artifacts.
 
 ## Red Flags
 
 **Never:**
 
+- **End the skill without producing CODE-REVIEW.md and IMPLEMENTATION-REPORT.md** (the skill is not done until both exist)
 - Start implementation on main/master branch without explicit user consent
 - Skip reviews (spec compliance OR code quality)
 - Proceed with unfixed issues

@@ -14,6 +14,4 @@
 
 ### Implementation
 
-- Use `subagent-driven-development` skill on implementation.
-- Use `planning` skill before move to implementation.
-- Use `brainstorming` skill if the question need further clarification, require a design or rich discussion.
+Skill invocation order is managed by the `control-tower` skill. Use `/control-tower` to enter the workflow.

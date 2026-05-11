@@ -29,6 +29,19 @@ Review this design document thoroughly before any implementation begins. For eve
 
 This review evaluates design documents — not code. If reviewing already-written code, use the `code-review` skill instead. If reviewing algorithms or numerical methods, use `sci-review` instead.
 
+## Bootstrap: Read Rules
+
+Before starting the review, read these rules to ground your evaluation:
+
+| Rule file | Why |
+|---|---|
+| `.claude/skills/control-tower/rules/ARCHITECTURE.md` | The authority on Clean Architecture layers, DIP, DTOs, error translation |
+| `.claude/skills/control-tower/rules/KEEP_IN_MIND.md` | Deep modules, interface design, testability principles |
+| `.claude/skills/control-tower/rules/AWARENESS.md` | Cross-service contract lessons, integration pitfalls |
+| `.claude/skills/control-tower/rules/OBSERVABILITY.md` | Logging and tracing standards to verify in design |
+
+**Procedure:** Read all listed rule files at the start. If any file is missing, note it and continue.
+
 ## Engineering preferences (use these to guide your recommendations):
 
 - Conceptual integrity is non-negotiable — a fast inconsistent design is worse than a slow coherent one.
@@ -347,3 +360,14 @@ docs/<topic>/ARCH-REVIEW.md
 Where `<topic>` is a short, kebab-case name derived from the design being reviewed (e.g., `scene-management`, `auth-middleware`). If the topic is ambiguous, ask the user with AskUserQuestion before saving.
 
 The saved file should be a clean, self-contained document (no conversation artifacts) that a reader can understand without the original interactive session.
+
+## Auto-Update DESIGN.md
+
+When invoked from the `brainstorming` skill (auto-invocation), after saving ARCH-REVIEW.md, also update `docs/<topic>/DESIGN.md` directly:
+
+1. Incorporate all accepted decisions from the review into the design document
+2. Add/update sections that were flagged as incomplete or missing
+3. Annotate deferred items in the design's scope section
+4. Update architecture diagrams if structural changes were accepted
+
+Do NOT ask the user whether to update DESIGN.md — this is automatic. The review drives the update.

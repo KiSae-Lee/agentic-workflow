@@ -38,6 +38,10 @@ Task tool (general-purpose):
 
     Work from: [directory]
 
+    ## Conventions
+
+    Follow `.claude/skills/control-tower/rules/CONVENTIONS.md`.
+
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 

@@ -1,12 +1,12 @@
 ---
 name: test-design-review
 description: |
-  Use this skill to verify TDD test design completeness for a user-specified codebase, plan, or change set, against the project's TDD standard document (`.claude/rules/TDD.md`). Trigger this skill whenever the user says any of: "test design review", "TDD review", "test completeness review", "test coverage design check", "review my test design", "did we plan enough tests", "what tests are missing", "audit our test plan", or any phrase asking *what tests should exist* (as opposed to *whether existing tests pass*). Bilingual triggers like "TDD 테스트 설계 검토", "테스트 완전성 리뷰", "테스트 누락 점검" also apply. The skill dispatches the `test-design-reviewer` subagent against the specified path and saves a standardized report as `TEST-DESIGN-REVIEW.md` at the codebase root. Use this proactively when a feature plan is finalized, when implementation is about to start, after a major step ships, or whenever a developer asks "did we plan enough tests?" — missing test *design* is far cheaper to fix before code ships than after.
+  Use this skill to verify TDD test design completeness for a user-specified codebase, plan, or change set, against the project's TDD standard document (`.claude/skills/control-tower/rules/TDD.md`). Trigger this skill whenever the user says any of: "test design review", "TDD review", "test completeness review", "test coverage design check", "review my test design", "did we plan enough tests", "what tests are missing", "audit our test plan", or any phrase asking *what tests should exist* (as opposed to *whether existing tests pass*). Bilingual triggers like "TDD 테스트 설계 검토", "테스트 완전성 리뷰", "테스트 누락 점검" also apply. The skill dispatches the `test-design-reviewer` subagent against the specified path and saves a standardized report as `TEST-DESIGN-REVIEW.md` at the codebase root. Use this proactively when a feature plan is finalized, when implementation is about to start, after a major step ships, or whenever a developer asks "did we plan enough tests?" — missing test *design* is far cheaper to fix before code ships than after.
 ---
 
 # Test Design Review
 
-Dispatch a `test-design-reviewer` subagent to verify whether the test design for a target codebase or change set is complete according to the project's TDD standard (`.claude/rules/TDD.md`).
+Dispatch a `test-design-reviewer` subagent to verify whether the test design for a target codebase or change set is complete according to the project's TDD standard (`.claude/skills/control-tower/rules/TDD.md`).
 
 **Announce at start:** "I'm using the test-design-review skill."
 
@@ -14,13 +14,21 @@ Dispatch a `test-design-reviewer` subagent to verify whether the test design for
 
 This skill checks **test *design* completeness** — *"are the right kinds of tests planned or present?"* — based on the four-stage pyramid, decision trees, and matrix defined in `TDD.md` (chapters 1, 2, 3, 4). It does **not** judge implementation correctness of individual tests (use `code-review` for that) or architectural fitness (use `arch-review`).
 
+## Bootstrap: Read Rules
+
+Before dispatching the review subagent, read this rule as the authority document:
+
+| Rule file | Why |
+|---|---|
+| `.claude/skills/control-tower/rules/TDD.md` | The sole authority for test design completeness — every recommendation traces back to it |
+
 ## Process
 
 1. **Identify the review scope.** Confirm with the user (or infer from context):
    - **Codebase path** — the directory the reviewer should evaluate. Default: current working directory.
    - **Target items** — the feature, plan, or change set to review. Examples: a `PLAN.md`, a recently merged feature, a specific module path, a commit-hash range. If only a path is given, treat *"all items implied by recent changes or open plan documents in that path"* as the target.
    - **Output path** — where to save the report. Default: `<codebase-path>/TEST-DESIGN-REVIEW.md`.
-   - **TDD standard location** — default: `<codebase-path>/.claude/rules/TDD.md`. If absent, halt and tell the user to provide one (the skill cannot run without a standard document).
+   - **TDD standard location** — default: `<codebase-path>/.claude/skills/control-tower/rules/TDD.md`. If absent, halt and tell the user to provide one (the skill cannot run without a standard document).
 
 2. **Locate skill resources.** This skill bundles two files the agent needs:
    - `test-design-review-agent-prompt.md` — the full review protocol.

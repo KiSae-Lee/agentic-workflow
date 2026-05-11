@@ -13,6 +13,15 @@ William Strunk Jr.'s _The Elements of Style_ (1918) teaches you to write clearly
 
 **WARNING:** `elements-of-style.md` consumes ~12,000 tokens. Read it only when writing or editing prose.
 
+## Bootstrap: Read Rules
+
+When editing documentation or technical writing, also consult:
+
+| Rule file | Why |
+|---|---|
+| `.claude/skills/control-tower/rules/CONVENTIONS.md` | Markdown conventions and naming standards |
+| `.claude/skills/control-tower/rules/DOCUMENTATION.md` | Rustdoc and Python doc format standards |
+
 ## When to Use This Skill
 
 Use this skill whenever you write prose for humans:

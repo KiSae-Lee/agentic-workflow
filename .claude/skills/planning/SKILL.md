@@ -1,6 +1,6 @@
 ---
 name: planning
-description: Use when you have a specifications or requirements for a multi-step task, before touching the codes or the documents. Produces PLAN.md, TASK.md, and NEXT_STEP.md, and runs a test-design-review loop until the plan's test coverage is verified Ready.
+description: Use when you have a specifications or requirements for a multi-step task, before touching the codes or the documents. Produces PLAN.md, TASK.md, and NEXT-STEP.md, and runs a test-design-review loop until the plan's test coverage is verified Ready.
 ---
 
 # Planning
@@ -11,6 +11,22 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Announce at start**: "I'm using the planning skill."
 
+## Bootstrap: Read Rules Before Planning
+
+Before drafting any artifacts, read the following rules files to inform your planning decisions. Each rule applies at a specific planning phase:
+
+| Rule file | When it applies | How it shapes the plan |
+|---|---|---|
+| `.claude/skills/control-tower/rules/ARCHITECTURE.md` | Plan drafting — layer design, folder structure, DI strategy | Ensure tasks follow Clean Architecture layers, DIP with traits, DTO isolation, error translation |
+| `.claude/skills/control-tower/rules/CONVENTIONS.md` | Plan drafting — commit strategy, naming, tooling choices | Apply git commit conventions, naming standards, cross-platform guidelines to task steps |
+| `.claude/skills/control-tower/rules/OBSERVABILITY.md` | Plan drafting — logging/tracing tasks | Include structured logging, correlation IDs, log-level discipline in relevant tasks |
+| `.claude/skills/control-tower/rules/DOCUMENTATION.md` | Plan drafting — doc tasks and code examples | Ensure code examples in the plan follow rustdoc/Python doc standards |
+| `.claude/skills/control-tower/rules/AWARENESS.md` | Plan drafting — integration points, DB, proto, startup | Apply lessons learned: verify cross-service contracts, match DB schema to ORM, pin deps, proto fixups |
+| `.claude/skills/control-tower/rules/KEEP_IN_MIND.md` | Plan drafting — interface design, test quality | Design deep modules, prefer dependency injection, mock only at system boundaries |
+| `.claude/skills/control-tower/rules/TDD.md` | Test design coverage loop | Used by `test-design-review` skill to verify test completeness |
+
+**Procedure:** At the start of planning, read all rule files listed above. If any file is missing, note it and continue — do not block on absent rules.
+
 <HARD-GATE>
 - Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until (a) you have presented a plan, (b) the test-design coverage loop has terminated with verdict `Ready`, and (c) the user has approved the final plan. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
@@ -19,8 +35,10 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 ```mermaid
 flowchart TD
-    A[Receive specifications] --> B[Draft PLAN.md · TASK.md · NEXT_STEP.md]
-    B --> C[Invoke test-design-review skill on docs/&lt;topic&gt;/]
+    A[Receive specifications] --> A1[Read TODO.md if it exists]
+    A1 --> B[Draft PLAN.md · TASK.md · NEXT-STEP.md]
+    B --> B1[Review and update TODO.md]
+    B1 --> C[Invoke test-design-review skill on docs/&lt;topic&gt;/]
     C --> D[Read TEST-DESIGN-REVIEW.md]
     D --> E{Verdict == Ready?<br/>0 Critical · ≤ 2 Important}
     E -->|No| F[Revise TASK.md · PLAN.md per report]
@@ -31,13 +49,26 @@ flowchart TD
 
 The loop edits files **in place** under `docs/<topic>/`. The final docs are the iterated artifacts, not the first draft.
 
+## TODO.md Review
+
+If `docs/<topic>/TODO.md` exists (created by brainstorming), read it before drafting the plan and update it after:
+
+1. **Before drafting** — read TODO.md to understand the full scope. Ensure TASK.md covers the MVP items.
+2. **After drafting** — update TODO.md to reflect planning decisions:
+   - Add any new items discovered during planning (e.g., test setup tasks, CI tasks)
+   - Refine item descriptions to match TASK.md wording
+   - Do NOT mark items as done — that happens during implementation
+   - Do NOT remove items — deferred items stay with their phase label
+
+If TODO.md does not exist, create it from the plan using the same format defined in the brainstorming skill.
+
 ## Saving Artifacts
 
 YOU MUST CREATE EXACTLY THREE SEPARATE FILES for each goal/feature unless specified otherwise by the project's `CLAUDE.md`, `AGENT.md` or `GEMINI.md` etc. Create a dedicated folder for the specific goal or feature:
 
 1. **`docs/<topic>/PLAN.md`**: The high-level plan, architecture, and tech stack.
 2. **`docs/<topic>/TASK.md`**: The detailed, bite-sized implementation tasks.
-3. **`docs/<topic>/NEXT_STEP.md`**: Suggestion for the immediate next logical step or feature to work on after this goal is completed.
+3. **`docs/<topic>/NEXT-STEP.md`**: Suggestion for the immediate next logical step or feature to work on after this goal is completed.
 
 DO NOT combine them into a single file.
 
@@ -147,7 +178,7 @@ Run: `cargo run --example native_viewer`
 Expected: [describe what should appear or what behavior to confirm]
 ````
 
-## File 3: Proposed Next Step (`docs/<topic>/NEXT_STEP.md`)
+## File 3: Proposed Next Step (`docs/<topic>/NEXT-STEP.md`)
 
 **This file should contain a single, clear recommendation for what the user should work on next after completing the current plan. It helps maintain momentum.**
 
@@ -161,12 +192,12 @@ Expected: [describe what should appear or what behavior to confirm]
 
 ## Test Design Coverage Loop (mandatory before handoff)
 
-Once `PLAN.md`, `TASK.md`, and `NEXT_STEP.md` exist on disk, you must verify the plan's **test design completeness** against the project's TDD standard before handing off to implementation. Test gaps caught at the plan stage cost orders of magnitude less than gaps caught after code ships.
+Once `PLAN.md`, `TASK.md`, and `NEXT-STEP.md` exist on disk, you must verify the plan's **test design completeness** against the project's TDD standard before handing off to implementation. Test gaps caught at the plan stage cost orders of magnitude less than gaps caught after code ships.
 
 ### Preconditions
 
-- `.claude/rules/TDD.md` exists at the codebase root.
-  - **If absent:** announce `"Test design coverage loop skipped — .claude/rules/TDD.md not found."` and proceed directly to Execution Handoff. Do not block planning on a missing standard.
+- `.claude/skills/control-tower/rules/TDD.md` exists at the codebase root.
+  - **If absent:** announce `"Test design coverage loop skipped — .claude/skills/control-tower/rules/TDD.md not found."` and proceed directly to Execution Handoff. Do not block planning on a missing standard.
 
 ### Loop procedure
 
@@ -200,16 +231,16 @@ flowchart TD
 ### Termination
 
 - **Convergence:** verdict becomes `Ready`. The loop exits and you present the final docs.
-- **Iteration cap:** after 3 iterations without convergence, stop and ask the user: *"After N iterations, the plan still has X Critical / Y Important gaps. Do you want to (a) accept the remaining gaps and proceed, (b) iterate further with my guidance on a specific gap, or (c) revisit the requirements?"*
+- **Iteration cap:** after 3 iterations without convergence, stop and ask the user: _"After N iterations, the plan still has X Critical / Y Important gaps. Do you want to (a) accept the remaining gaps and proceed, (b) iterate further with my guidance on a specific gap, or (c) revisit the requirements?"_
 - **Blocked:** the loop halts immediately. Do not attempt revisions until the blocker is resolved.
 
 ### What changes during revision
 
-| Gap class | Typical revision |
-|---|---|
-| **Critical** | Add the missing required test category as new tasks in `TASK.md` (e.g., a security-test task for a payment flow), plus updates to the relevant section of `PLAN.md` if it's a structural omission. |
-| **Important** | Add boundary / edge-case tasks, configure missing tooling (coverage, mutation), strengthen weak assertions in planned tests. |
-| **Minor** | Optional. Track in `NEXT_STEP.md` or note them in `PLAN.md` for follow-up; do not block on these. |
+| Gap class     | Typical revision                                                                                                                                                                                   |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Critical**  | Add the missing required test category as new tasks in `TASK.md` (e.g., a security-test task for a payment flow), plus updates to the relevant section of `PLAN.md` if it's a structural omission. |
+| **Important** | Add boundary / edge-case tasks, configure missing tooling (coverage, mutation), strengthen weak assertions in planned tests.                                                                       |
+| **Minor**     | Optional. Track in `NEXT-STEP.md` or note them in `PLAN.md` for follow-up; do not block on these.                                                                                                  |
 
 The `TEST-DESIGN-REVIEW.md` report from the **final** iteration stays committed alongside the plan as a record that the gate was satisfied.
 
@@ -219,27 +250,7 @@ The `TEST-DESIGN-REVIEW.md` report from the **final** iteration stays committed 
 
 After the test-design coverage loop has terminated with `Verdict: Ready` (or after the user explicitly accepted remaining gaps at the iteration cap):
 
-### Sci-Review Detection
-
-Before presenting options, scan the plan for algorithmic/scientific content. Check if the plan involves ANY of:
-
-- Algorithm design or implementation (sorting, searching, graph algorithms, optimization)
-- Numerical methods (floating-point arithmetic, interpolation, solvers, convergence)
-- Scientific computing (physics simulation, geometry processing, mesh operations)
-- AI/ML components (training loops, loss functions, data pipelines)
-- Mathematical transformations (matrix operations, coordinate systems, projections)
-- Performance-critical algorithms where complexity analysis matters
-
-**If algorithmic/scientific content is detected**, use `AskUserQuestion`:
-
-- Question: "Plan complete and saved to `docs/<topic>/`. This plan involves algorithmic/scientific content — a sci-review can catch correctness, numerical stability, and complexity issues before implementation. How would you like to proceed?"
-- Header: "Next step"
-- Options:
-  1. **"Run sci-review first" (Recommended for algorithmic plans)** — Invoke the `sci-review` skill to review the plan before implementation.
-  2. **"Start subagent-driven development"** — Skip review, begin implementation immediately.
-  3. **"Not now"** — End here; the user will start later.
-
-**If NO algorithmic/scientific content**, use `AskUserQuestion`:
+Use `AskUserQuestion`:
 
 - Question: "Plan complete and saved to `docs/<topic>/`. Ready to start implementation?"
 - Header: "Next step"
@@ -247,13 +258,10 @@ Before presenting options, scan the plan for algorithmic/scientific content. Che
   1. **"Start subagent-driven development" (Recommended)** — Invoke the `subagent-driven-development` skill to begin implementation immediately.
   2. **"Not now"** — End here; the user will start implementation later.
 
-**If the user selects "Run sci-review first":**
-
-- **REQUIRED SUB-SKILL:** Use sci-review
-- After sci-review completes, ask again whether to start subagent-driven development
-
 **If the user selects "Start subagent-driven development":**
 
 - **REQUIRED SUB-SKILL:** Use subagent-driven-development
 - Stay in this session
 - Fresh subagent per task + code review
+
+> **Note:** Sci-review runs during the Design phase (in brainstorming) before planning begins. It is not part of the planning handoff.

@@ -23,6 +23,17 @@ allowed-tools:
 
 Review this plan thoroughly before making any code changes. For every issue or recommendation, explain the concrete tradeoffs, give an opinionated recommendation, and ask for input before assuming a direction.
 
+## Bootstrap: Read Rules
+
+Before starting the review, read these rules to inform your evaluation:
+
+| Rule file | Why |
+|---|---|
+| `.claude/skills/control-tower/rules/TDD.md` | Test design framework for algorithmic components |
+| `.claude/skills/control-tower/rules/KEEP_IN_MIND.md` | Interface design and testability principles |
+
+**Procedure:** Read all listed rule files at the start. If any file is missing, note it and continue.
+
 ## My engineering preferences (use these to guide your recommendations):
 
 - Correctness is non-negotiable — a fast wrong answer is worthless.

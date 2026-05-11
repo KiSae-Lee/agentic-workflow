@@ -89,12 +89,11 @@ For each issue found:
 
 Write the review report using the Report Template at the end of this document.
 
-Save to: `docs/<commit-identifier>-YY-MM-DD-HH:MM:SS-code-review.md`
+Save to: `docs/<topic>/CODE-REVIEW.md`
 
-- `<commit-identifier>`: short SHA or branch name identifying what was reviewed
-- Timestamp: when the review was completed (Use bash command to get current time)
+- `<topic>`: short, kebab-case name for the feature or scope being reviewed
 
-**Create `docs/` directory if it doesn't exist.**
+**Create `docs/<topic>/` directory if it doesn't exist.**
 
 ## The Five Review Dimensions
 

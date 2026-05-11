@@ -1,2 +1,0 @@
-- Use scripts in `scripts` folder when run something related to docker.
-- Before create plan files, scan all of the docs folder in every services and the root, make sure the numbering is correct. (Numbering is share globally)
