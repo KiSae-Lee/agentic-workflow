@@ -194,7 +194,7 @@ After BOTH artifacts exist, the workflow continues with:
 
 1. **Update codebase-map.md** — reflect the new code structure
 2. **Update atdd.md** — mark completed items, add any new items discovered
-3. **Create/update summary.md** — write or update `spec/summary.md` following the template in `.claude/skills/brainstorming/summary-template.md`
+3. **Create/update summary.md** — write or update `spec/summary.md` following the template in `.claude/skills/subagent-driven-development/summary-template.md`
 
 These updates happen in the main conversation, not via subagent. Subagent-driven-development ends after producing its output artifacts.
 

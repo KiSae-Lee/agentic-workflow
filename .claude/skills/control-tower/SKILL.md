@@ -54,7 +54,7 @@ Artifact                                        → Stage Completed        → N
 ──────────────────────────────────────────────────────────────────────────────────────
 (nothing in spec/)                      → (none)                 → Explore
 codebase-map.md (project root)                  → Explore                → grill-me
-spec/common.md + atdd.md                → Shared Understanding   → brainstorming
+spec/common.md + atdd.md                → Shared Understanding   → design
 spec/overview.md                        → Design (partial)       → arch-review check
 spec/arch-review.md                     → Design (arch-reviewed) → sci-review check / planning
 spec/YYYYMMDD-keyword/plan.md + task.md         → Planning (partial)     → test-design-review check
@@ -70,7 +70,7 @@ After a phase's implementation-report.md is written, check atdd.md for remaining
 
 ### Refinements
 
-- **spec/ exists but no arch-review.md** → design was not reviewed. Resume at arch-review (brainstorming invokes this automatically, so the user may have interrupted mid-design).
+- **spec/ exists but no arch-review.md** → design was not reviewed. Resume at arch-review (design invokes this automatically, so the user may have interrupted mid-design).
 - **plan.md exists but no test-design-review.md** (in current phase dir) → plan was not verified. Resume at test-design-review (planning invokes this automatically).
 - **spec/ + arch-review.md exist, content is algorithmic, but no sci-review.md** → sci-review was skipped or interrupted. Ask user if they want to run it before planning.
 - **code-review.md exists but no implementation-report.md** (in current phase dir) → code review ran but implementation report wasn't written. Resume at report generation.
@@ -94,7 +94,7 @@ flowchart TD
 
     F -->|"Create codebase-map.md"| G
     G -->|"Invoke grill-me → common.md + atdd.md"| H
-    H -->|"Invoke brainstorming → spec/ (auto: arch-review, sci-review)"| I
+    H -->|"Invoke design → spec/ (auto: arch-review, sci-review)"| I
     I -->|"Invoke planning (auto: test-design-review)"| J
     J -->|"Invoke subagent-driven-development (auto: code-review)"| K
 
@@ -116,23 +116,23 @@ Invoke the `grill-me` skill. It interviews the user and produces:
 - `spec/common.md` — shared understanding
 - `spec/atdd.md` — E2E acceptance checklist (Feature → User Story)
 
-grill-me's terminal state invokes brainstorming automatically — you don't need to bridge this transition.
+grill-me's terminal state invokes design automatically — you don't need to bridge this transition.
 
-### Stage 3: Design (brainstorming → arch-review → sci-review)
+### Stage 3: Design (design → arch-review → sci-review)
 
-Invoke the `brainstorming` skill. It reads common.md and atdd.md, then produces full-suite design specs under `spec/`:
+Invoke the `design` skill. It reads common.md and atdd.md, then produces full-suite design specs under `spec/`:
 - Always: `glossary.md`, `constraints.md`, `architecture-decisions.md`, `overview.md`, `non-functional-requirements.md`, `use-cases.md`, `flows.md`
 - When applicable: `data-model.md`, `api-design.md`, `deployment.md`, `ui/`
 
-brainstorming auto-invokes:
+design auto-invokes:
 - `arch-review` → validates spec documents, creates arch-review.md
 - `sci-review` (if algorithmic content detected) → validates spec, creates sci-review.md
 
-brainstorming also refines atdd.md with any new features/criteria discovered during design.
+design also refines atdd.md with any new features/criteria discovered during design.
 
-brainstorming's terminal state invokes planning — the chain is automatic.
+design's terminal state invokes planning — the chain is automatic.
 
-**Revision loop**: if the user requests design changes, brainstorming loops back to itself.
+**Revision loop**: if the user requests design changes, design loops back to itself.
 
 ### Stage 4: Planning (planning → test-design-review)
 
@@ -160,7 +160,7 @@ subagent-driven-development produces:
 After implementation-report.md is written:
 
 1. **Update codebase-map.md** — reflect the new code structure
-2. **Create/update summary.md** — write `spec/summary.md` following the template in `.claude/skills/brainstorming/summary-template.md`. Captures current status, ATDD progress, phase history, risks, technical debt, and open issues. If summary.md already exists (from a previous phase), append the new phase entry — never overwrite history.
+2. **Create/update summary.md** — write `spec/summary.md` following the template in `.claude/skills/subagent-driven-development/summary-template.md`. Captures current status, ATDD progress, phase history, risks, technical debt, and open issues. If summary.md already exists (from a previous phase), append the new phase entry — never overwrite history.
 3. **Update atdd.md** — check off acceptance criteria that were verified during this phase's implementation
 4. **Worktree cleanup** — run final sweep (see Worktree Cleanup below)
 
@@ -170,7 +170,7 @@ The user can request to jump to any stage. Valid commands:
 
 - "jump to explore" / "go back to explore" → Stage 1
 - "jump to grill-me" / "start over understanding" → Stage 2
-- "jump to brainstorming" / "go back to design" → Stage 3
+- "jump to design" / "go back to design" → Stage 3
 - "jump to planning" / "redo the plan" → Stage 4
 - "jump to implementation" / "start building" → Stage 5
 
@@ -226,7 +226,7 @@ Rules:
 ## Interaction Rules
 
 - **Always use `AskUserQuestion`** for user interaction — plain-text questions don't work in skill mode
-- **Announce position clearly** — "You're at Stage 3 (Design). common.md and atdd.md exist, spec/ does not. Next step: invoke brainstorming."
+- **Announce position clearly** — "You're at Stage 3 (Design). common.md and atdd.md exist, spec/ does not. Next step: invoke design."
 - **One decision at a time** — don't overwhelm with options
 - **Respect the user's choice** — if they want to jump or skip, let them (with a warning about consequences)
 
@@ -234,7 +234,7 @@ Rules:
 
 - Ask if the idea belongs to "Design" or "Implementation" when unclear
 - Spec files under `spec/` are the full-suite design — phasing is planning's job
-- atdd.md is created by grill-me (customer acceptance criteria), refined by brainstorming, and checked off during implementation
+- atdd.md is created by grill-me (customer acceptance criteria), refined by design, and checked off during implementation
 - summary.md is created/updated after each phase's implementation completes — captures status, risks, and technical debt
 - Remove worktrees after implementation
 - codebase-map.md creation uses the Explore agent

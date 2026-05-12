@@ -328,7 +328,7 @@ Diagram maintenance is part of the change — flag stale diagrams in the design 
 ## Relationship to Other Skills
 
 ```
-brainstorming → planning → [sci-review] → subagent-driven-development → [arch-review] → code-review
+design → planning → [sci-review] → subagent-driven-development → [arch-review] → code-review
                               ↑                                             ↑
                         algorithms/numerics                          architecture/design
                         (before implementation)                      (before implementation)

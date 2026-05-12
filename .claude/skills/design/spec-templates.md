@@ -1,6 +1,6 @@
 # Spec File Templates
 
-Templates with few-shot examples for each spec file. Brainstorming skill references this file when drafting specs under `spec/`.
+Templates with few-shot examples for each spec file. The `design` skill references this file when drafting specs under `spec/`.
 
 **Rules:**
 - **Always create**: `glossary.md`, `constraints.md`, `architecture-decisions.md`, `overview.md`, `non-functional-requirements.md`, `use-cases.md`, `flows.md`

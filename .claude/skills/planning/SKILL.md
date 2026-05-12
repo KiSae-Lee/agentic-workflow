@@ -82,8 +82,8 @@ Planning artifacts are bite-sized — each planning cycle covers one phase of th
 spec/
   common.md                      ← shared understanding (owned by grill-me)
   atdd.md                        ← acceptance criteria — the progress tracker
-  glossary.md                    ← shared vocabulary (owned by brainstorming)
-  overview.md                    ← architecture overview (owned by brainstorming)
+  glossary.md                    ← shared vocabulary (owned by design)
+  overview.md                    ← architecture overview (owned by design)
   ... (other spec files)
   20260512-authentication/
     plan.md
@@ -306,4 +306,4 @@ Use `AskUserQuestion`:
 - Stay in this session
 - Fresh subagent per task + code review
 
-> **Note:** Sci-review runs during the Design phase (in brainstorming) before planning begins. It is not part of the planning handoff.
+> **Note:** Sci-review runs during the Design stage (auto-invoked by the `design` skill) before planning begins. It is not part of the planning handoff.

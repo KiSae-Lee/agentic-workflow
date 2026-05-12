@@ -1,5 +1,5 @@
 ---
-name: brainstorming
+name: design
 description: "Use after grill-me has produced common.md and atdd.md, or when the user already has a clear spec. Reads common.md and atdd.md, then produces full-suite design specs under spec/. Explores approaches, drafts spec documents, then auto-invokes arch-review to validate before transitioning to planning."
 allowed-tools:
   - Bash
@@ -12,13 +12,13 @@ allowed-tools:
   - WebSearch
 ---
 
-# Brainstorming — Ideas Into Full-Suite Specs
+# Design — Ideas Into Full-Suite Specs
 
 ## Overview
 
 Turn shared understanding (common.md) and acceptance criteria (atdd.md) into full-suite design specifications. This is NOT MVP-scoped — design the complete system. Phasing is planning's job.
 
-**Announce at start**: "I'm using the brainstorming skill."
+**Announce at start**: "I'm using the design skill."
 
 <HARD-GATE>
 - Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it.
@@ -184,7 +184,7 @@ After the user approves the spec and atdd.md is refined:
 1. **Invoke `arch-review` skill** — it reviews the spec documents (especially `overview.md` and `data-model.md`) against architecture quality attributes
 2. **Arch-review updates spec files** — issues and decisions from the review are incorporated into the relevant spec documents
 
-The user does NOT need to manually trigger arch-review. It runs automatically as part of the brainstorming flow.
+The user does NOT need to manually trigger arch-review. It runs automatically as part of the design flow.
 
 ## Sci-Review Detection
 
@@ -209,7 +209,7 @@ The user does NOT need to manually trigger sci-review. It runs automatically whe
 
 ## Terminal State
 
-After arch-review (and sci-review if applicable) completes and spec files are updated, invoke the `planning` skill. Do NOT invoke any other implementation skill. The ONLY skill you invoke after brainstorming is planning.
+After arch-review (and sci-review if applicable) completes and spec files are updated, invoke the `planning` skill. Do NOT invoke any other implementation skill. The ONLY skill you invoke after design is planning.
 
 ## Key Principles
 

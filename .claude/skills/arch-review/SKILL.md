@@ -363,7 +363,7 @@ The saved file should be a clean, self-contained document (no conversation artif
 
 ## Auto-Update Spec Files
 
-When invoked from the `brainstorming` skill (auto-invocation), after saving arch-review.md, also update the relevant spec files under `spec/` directly:
+When invoked from the `design` skill (auto-invocation), after saving arch-review.md, also update the relevant spec files under `spec/` directly:
 
 1. Incorporate all accepted decisions from the review into the relevant spec files (especially `overview.md` and `data-model.md`)
 2. Add/update sections that were flagged as incomplete or missing

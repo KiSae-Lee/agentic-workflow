@@ -20,7 +20,7 @@ Interview the user relentlessly about every aspect of this idea/plan/design unti
 
 <HARD-GATE>
 - Do NOT invoke any implementation skill, write any code, scaffold any project, or take any design action.
-- Do NOT produce design specs — that is brainstorming's job.
+- Do NOT produce design specs — that is design's job.
 - The ONLY outputs are common.md and atdd.md.
 - EVERY question to the user MUST use the `AskUserQuestion` tool. Plain-text questions are invisible to the user in skill mode.
 </HARD-GATE>
@@ -37,7 +37,7 @@ After learning what the user wants to build, read these rules to inform your que
 
 ## The Process
 
-1. **Ask what the user wants to build** — start by asking the user to describe their idea. Do NOT read files, rules, or codebase before hearing from the user first. Offer two options: "Describe my idea" (user types their idea via Other) and "I already have a spec" (skip to brainstorming fast path).
+1. **Ask what the user wants to build** — start by asking the user to describe their idea. Do NOT read files, rules, or codebase before hearing from the user first. Offer two options: "Describe my idea" (user types their idea via Other) and "I already have a spec" (skip to design fast path).
 2. **Explore project context** — check files, docs, recent commits. Read the Bootstrap rules above.
 3. **Interview relentlessly** — ask questions one at a time using `AskUserQuestion`
    - If a question can be answered by exploring the codebase, explore the codebase instead
@@ -48,7 +48,7 @@ After learning what the user wants to build, read these rules to inform your que
    - **Extract acceptance criteria as you go** — when the user describes what they want to achieve, capture it as an ATDD item. Phrase it from the customer/user perspective, not the developer's.
 4. **Confirm understanding** — summarize using `AskUserQuestion` with `preview` showing both the common.md and atdd.md drafts. Options: "Approve", "Needs changes"
 5. **Save common.md and atdd.md** — write both approved documents
-6. **Transition** — invoke the `brainstorming` skill
+6. **Transition** — invoke the `design` skill
 
 ## Saving Artifacts
 
@@ -76,7 +76,7 @@ Save both files:
 [How we know this is done and done well]
 
 ## Open Questions
-[Anything unresolved that brainstorming/design must address]
+[Anything unresolved that design/design must address]
 
 ## Assumptions
 [What we're assuming to be true — must be validated during design]
@@ -93,7 +93,7 @@ Organize by **Feature** (a specific capability that delivers user value). Each c
 
 Acceptance test items extracted during shared-understanding interview.
 Organized by Feature, each item is a User Story as acceptance criterion.
-Updated by brainstorming (refinement) and checked off during implementation
+Updated by design (refinement) and checked off during implementation
 when E2E verification passes.
 
 ## Feature: <feature name>
@@ -129,4 +129,4 @@ when E2E verification passes.
 
 ## Terminal State
 
-The terminal state is invoking `brainstorming`. Do NOT invoke planning, subagent-driven-development, or any other skill. The ONLY skill you invoke after grill-me is brainstorming.
+The terminal state is invoking `design`. Do NOT invoke planning, subagent-driven-development, or any other skill. The ONLY skill you invoke after grill-me is design.
