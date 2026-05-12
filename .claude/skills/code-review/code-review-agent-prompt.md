@@ -89,11 +89,11 @@ For each issue found:
 
 Write the review report using the Report Template at the end of this document.
 
-Save to: `docs/<topic>/CODE-REVIEW.md`
+Save to: the output path provided by the dispatcher. If no output path is provided, default to `spec/code-review.md`.
 
-- `<topic>`: short, kebab-case name for the feature or scope being reviewed
+When dispatched from subagent-driven-development, the output path will be `spec/YYYYMMDD-keyword/code-review.md` (the current phase directory).
 
-**Create `docs/<topic>/` directory if it doesn't exist.**
+**Create the target directory if it doesn't exist.**
 
 ## The Five Review Dimensions
 
@@ -426,7 +426,7 @@ Before submitting your review:
 - [ ] Acknowledged specific strengths (not generic praise)
 - [ ] Gave clear verdict with reasoning
 - [ ] Dimension Summary table filled for all 5 dimensions
-- [ ] Report saved to `docs/<commit-identifier>-YY-MM-DD-HH:MM:SS-code-review.md`
+- [ ] Report saved to the specified output path (default: `spec/code-review.md`)
 
 Can't check all boxes? You skipped part of the review. Go back.
 

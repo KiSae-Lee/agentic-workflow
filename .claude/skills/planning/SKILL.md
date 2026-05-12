@@ -1,6 +1,6 @@
 ---
 name: planning
-description: Use when you have a specifications or requirements for a multi-step task, before touching the codes or the documents. Produces PLAN.md, TASK.md, and NEXT-STEP.md, and runs a test-design-review loop until the plan's test coverage is verified Ready.
+description: Use when you have a specifications or requirements for a multi-step task, before touching the codes or the documents. Produces plan.md, task.md, and next-step.md, and runs a test-design-review loop until the plan's test coverage is verified Ready.
 ---
 
 # Planning
@@ -31,50 +31,86 @@ Before drafting any artifacts, read the following rules files to inform your pla
 - Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until (a) you have presented a plan, (b) the test-design coverage loop has terminated with verdict `Ready`, and (c) the user has approved the final plan. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
+## Bootstrap: Read Spec Files
+
+Before drafting, read the design specs to understand what you're planning for:
+
+1. **`spec/atdd.md`** — acceptance criteria. Identify unchecked items to scope this phase.
+2. **`spec/overview.md`** — architecture, tech stack, cross-cutting concerns.
+3. **`spec/use-cases.md`** — actor interactions and flows for the features in scope.
+4. **`spec/flows.md`** — sequence diagrams, state diagrams for the features in scope.
+5. **`spec/constraints.md`** — hard boundaries that limit implementation choices.
+6. **`spec/architecture-decisions.md`** — ADRs that constrain how to build.
+7. **`spec/non-functional-requirements.md`** — performance/security targets tasks must meet.
+8. **`spec/glossary.md`** — use consistent terminology in plan and task descriptions.
+9. **`spec/data-model.md`**, **`spec/api-design.md`**, **`spec/deployment.md`**, **`spec/ui/`** — read when relevant to the features in scope.
+
+You do NOT need to read every spec file in full. Read what's relevant to the features being planned in this phase.
+
+## Phase Scoping
+
+Each planning cycle covers a **subset** of unchecked atdd.md items — not the entire design. To determine this phase's scope:
+
+1. **Read `spec/atdd.md`** — find all unchecked (`- [ ]`) acceptance criteria.
+2. **If previous phases exist** — read the latest `spec/YYYYMMDD-keyword/next-step.md` for the recommended next scope.
+3. **Group by Feature** — pick one or more related Features that form a coherent deliverable.
+4. **Right-size the phase** — a phase should be completable in days, not weeks. If a Feature is too large, pick a subset of its user stories.
+5. **Announce scope** — tell the user which atdd.md items this phase covers before drafting.
+
 ## End-to-end flow
 
 ```mermaid
 flowchart TD
-    A[Receive specifications] --> A1[Read TODO.md if it exists]
-    A1 --> B[Draft PLAN.md · TASK.md · NEXT-STEP.md]
-    B --> B1[Review and update TODO.md]
-    B1 --> C[Invoke test-design-review skill on docs/&lt;topic&gt;/]
-    C --> D[Read TEST-DESIGN-REVIEW.md]
+    A[Read spec files + atdd.md] --> A1[Scope phase from unchecked atdd.md items]
+    A1 --> B[Draft plan.md · task.md · next-step.md]
+    B --> C[Invoke test-design-review skill on spec/YYYYMMDD-keyword/]
+    C --> D[Read test-design-review.md]
     D --> E{Verdict == Ready?<br/>0 Critical · ≤ 2 Important}
-    E -->|No| F[Revise TASK.md · PLAN.md per report]
+    E -->|No| F[Revise task.md · plan.md per report]
     F --> C
     E -->|Yes| G[Final docs ready]
     G --> H[Execution handoff prompt]
 ```
 
-The loop edits files **in place** under `docs/<topic>/`. The final docs are the iterated artifacts, not the first draft.
+The loop edits files **in place** under `spec/YYYYMMDD-keyword/`. The final docs are the iterated artifacts, not the first draft.
 
-## TODO.md Review
+## Phase Directory Structure
 
-If `docs/<topic>/TODO.md` exists (created by brainstorming), read it before drafting the plan and update it after:
+Planning artifacts are bite-sized — each planning cycle covers one phase of the full-suite design. To preserve history across cycles, each phase gets its own subdirectory:
 
-1. **Before drafting** — read TODO.md to understand the full scope. Ensure TASK.md covers the MVP items.
-2. **After drafting** — update TODO.md to reflect planning decisions:
-   - Add any new items discovered during planning (e.g., test setup tasks, CI tasks)
-   - Refine item descriptions to match TASK.md wording
-   - Do NOT mark items as done — that happens during implementation
-   - Do NOT remove items — deferred items stay with their phase label
+```
+spec/
+  common.md                      ← shared understanding (owned by grill-me)
+  atdd.md                        ← acceptance criteria — the progress tracker
+  glossary.md                    ← shared vocabulary (owned by brainstorming)
+  overview.md                    ← architecture overview (owned by brainstorming)
+  ... (other spec files)
+  20260512-authentication/
+    plan.md
+    task.md
+    next-step.md
+    test-design-review.md
+  20260520-workspace-invitation/
+    plan.md
+    task.md
+    ...
+```
 
-If TODO.md does not exist, create it from the plan using the same format defined in the brainstorming skill.
+**Phase directory naming:** Use `YYYYMMDD-keyword` format where the date is today's date and the keyword is a short kebab-case name derived from the phase scope (e.g., `20260512-authentication`, `20260520-workspace-invitation`). To find the latest phase, sort directories under `spec/` matching `[0-9]*-*` and pick the last one.
 
 ## Saving Artifacts
 
-YOU MUST CREATE EXACTLY THREE SEPARATE FILES for each goal/feature unless specified otherwise by the project's `CLAUDE.md`, `AGENT.md` or `GEMINI.md` etc. Create a dedicated folder for the specific goal or feature:
+YOU MUST CREATE EXACTLY THREE SEPARATE FILES for each planning cycle. Save them under the current phase directory:
 
-1. **`docs/<topic>/PLAN.md`**: The high-level plan, architecture, and tech stack.
-2. **`docs/<topic>/TASK.md`**: The detailed, bite-sized implementation tasks.
-3. **`docs/<topic>/NEXT-STEP.md`**: Suggestion for the immediate next logical step or feature to work on after this goal is completed.
+1. **`spec/YYYYMMDD-keyword/plan.md`**: The high-level plan, architecture, and tech stack for this phase.
+2. **`spec/YYYYMMDD-keyword/task.md`**: The detailed, bite-sized implementation tasks for this phase.
+3. **`spec/YYYYMMDD-keyword/next-step.md`**: Suggestion for the immediate next logical step or feature to work on after this phase is completed.
 
 DO NOT combine them into a single file.
 
-## File 1: Plan Guideline (`docs/<topic>/PLAN.md`)
+## File 1: Plan Guideline (`spec/YYYYMMDD-keyword/plan.md`)
 
-**Every `PLAN.md` MUST start with this exact header structure, and MUST NOT contain the task list. It is ONLY for the high-level plan:**
+**Every `plan.md` MUST start with this exact header structure, and MUST NOT contain the task list. It is ONLY for the high-level plan:**
 
 ```markdown
 # [Goal/Feature Name] Implementation Plan
@@ -85,12 +121,18 @@ DO NOT combine them into a single file.
 
 **Tech Stack:** [Key technologies/libraries]
 
+**Phase scope (from atdd.md):**
+- Feature: [Feature name] → [User story 1], [User story 2]
+- Feature: [Feature name] → [User story 3]
+
 ---
 ```
 
-## File 2: Task Implementation (`docs/<topic>/TASK.md`)
+The phase scope section creates traceability from the plan back to the acceptance criteria it implements.
 
-**All tasks MUST go into `TASK.md`. Do NOT put tasks in `PLAN.md`.**
+## File 2: Task Implementation (`spec/YYYYMMDD-keyword/task.md`)
+
+**All tasks MUST go into `task.md`. Do NOT put tasks in `plan.md`.**
 
 **Each step is one action (2-5 minutes):**
 
@@ -100,7 +142,7 @@ DO NOT combine them into a single file.
 - "Run the tests and make sure they pass" - step
 - "Commit" - step
 
-**Every task inside `TASK.md` MUST use this exact structure:**
+**Every task inside `task.md` MUST use this exact structure:**
 
 ### TDD Tasks (pure logic, domain, application layers)
 
@@ -178,7 +220,7 @@ Run: `cargo run --example native_viewer`
 Expected: [describe what should appear or what behavior to confirm]
 ````
 
-## File 3: Proposed Next Step (`docs/<topic>/NEXT-STEP.md`)
+## File 3: Proposed Next Step (`spec/YYYYMMDD-keyword/next-step.md`)
 
 **This file should contain a single, clear recommendation for what the user should work on next after completing the current plan. It helps maintain momentum.**
 
@@ -192,7 +234,7 @@ Expected: [describe what should appear or what behavior to confirm]
 
 ## Test Design Coverage Loop (mandatory before handoff)
 
-Once `PLAN.md`, `TASK.md`, and `NEXT-STEP.md` exist on disk, you must verify the plan's **test design completeness** against the project's TDD standard before handing off to implementation. Test gaps caught at the plan stage cost orders of magnitude less than gaps caught after code ships.
+Once `plan.md`, `task.md`, and `next-step.md` exist on disk, you must verify the plan's **test design completeness** against the project's TDD standard before handing off to implementation. Test gaps caught at the plan stage cost orders of magnitude less than gaps caught after code ships.
 
 ### Preconditions
 
@@ -204,13 +246,13 @@ Once `PLAN.md`, `TASK.md`, and `NEXT-STEP.md` exist on disk, you must verify the
 ```mermaid
 flowchart TD
     Start([Docs saved]) --> Iter[Iteration N starts]
-    Iter --> Invoke[Invoke test-design-review skill<br/>codebase = repo root<br/>target = docs/&lt;topic&gt;/<br/>output = docs/&lt;topic&gt;/TEST-DESIGN-REVIEW.md]
-    Invoke --> Read[Read TEST-DESIGN-REVIEW.md<br/>Extract Verdict + gap counts + Top 3 actions]
+    Iter --> Invoke[Invoke test-design-review skill<br/>codebase = repo root<br/>target = spec/YYYYMMDD-keyword/<br/>output = spec/YYYYMMDD-keyword/test-design-review.md]
+    Invoke --> Read[Read test-design-review.md<br/>Extract Verdict + gap counts + Top 3 actions]
     Read --> Decide{Verdict?}
     Decide -->|Ready<br/>0 Critical · ≤ 2 Important| Done([Exit loop · proceed to handoff])
     Decide -->|Needs fixes| Cap{Iteration < 3?}
     Decide -->|Blocked| Halt([Halt: surface blocker to user])
-    Cap -->|Yes| Revise[Revise TASK.md / PLAN.md<br/>per Critical & Important recommendations]
+    Cap -->|Yes| Revise[Revise task.md / plan.md<br/>per Critical & Important recommendations]
     Cap -->|No| Escalate([Iteration cap hit · ask user how to proceed])
     Revise --> Iter
 ```
@@ -219,14 +261,14 @@ flowchart TD
 
 1. Dispatch the `test-design-review` skill with:
    - **Codebase path**: the project root.
-   - **Target items**: `docs/<topic>/PLAN.md` and `docs/<topic>/TASK.md` (and any associated source paths the plan touches).
-   - **Output path** (override default): `docs/<topic>/TEST-DESIGN-REVIEW.md`.
-2. Read the resulting `TEST-DESIGN-REVIEW.md`. Extract the **Verdict**, gap counts, and the **Top 3 actions** block.
+   - **Target items**: `spec/YYYYMMDD-keyword/plan.md` and `spec/YYYYMMDD-keyword/task.md` (and any associated source paths the plan touches).
+   - **Output path** (override default): `spec/YYYYMMDD-keyword/test-design-review.md`.
+2. Read the resulting `test-design-review.md`. Extract the **Verdict**, gap counts, and the **Top 3 actions** block.
 3. Apply the verdict rule:
    - **`Ready`** (0 Critical, ≤ 2 Important) → exit the loop. Proceed to Execution Handoff.
    - **`Needs fixes`** → revise the plan and loop again.
    - **`Blocked`** → halt the loop. Surface the blocker to the user (typically a missing standard or unidentifiable target) and decide together how to proceed.
-4. When revising, edit `TASK.md` first (most gaps are missing test tasks); touch `PLAN.md` only if the gap is architectural (e.g., a whole test category missing from the strategy section). Each Critical and Important recommendation must map to a concrete change — added test tasks, new boundary cases, mutation-testing setup tasks, security-test tasks, etc.
+4. When revising, edit `task.md` first (most gaps are missing test tasks); touch `plan.md` only if the gap is architectural (e.g., a whole test category missing from the strategy section). Each Critical and Important recommendation must map to a concrete change — added test tasks, new boundary cases, mutation-testing setup tasks, security-test tasks, etc.
 
 ### Termination
 
@@ -238,11 +280,11 @@ flowchart TD
 
 | Gap class     | Typical revision                                                                                                                                                                                   |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Critical**  | Add the missing required test category as new tasks in `TASK.md` (e.g., a security-test task for a payment flow), plus updates to the relevant section of `PLAN.md` if it's a structural omission. |
+| **Critical**  | Add the missing required test category as new tasks in `task.md` (e.g., a security-test task for a payment flow), plus updates to the relevant section of `plan.md` if it's a structural omission. |
 | **Important** | Add boundary / edge-case tasks, configure missing tooling (coverage, mutation), strengthen weak assertions in planned tests.                                                                       |
-| **Minor**     | Optional. Track in `NEXT-STEP.md` or note them in `PLAN.md` for follow-up; do not block on these.                                                                                                  |
+| **Minor**     | Optional. Track in `next-step.md` or note them in `plan.md` for follow-up; do not block on these.                                                                                                  |
 
-The `TEST-DESIGN-REVIEW.md` report from the **final** iteration stays committed alongside the plan as a record that the gate was satisfied.
+The `test-design-review.md` report from the **final** iteration stays committed alongside the plan as a record that the gate was satisfied.
 
 ---
 
@@ -252,7 +294,7 @@ After the test-design coverage loop has terminated with `Verdict: Ready` (or aft
 
 Use `AskUserQuestion`:
 
-- Question: "Plan complete and saved to `docs/<topic>/`. Ready to start implementation?"
+- Question: "Plan complete and saved to `spec/YYYYMMDD-keyword/`. Ready to start implementation?"
 - Header: "Next step"
 - Options:
   1. **"Start subagent-driven development" (Recommended)** — Invoke the `subagent-driven-development` skill to begin implementation immediately.

@@ -2,11 +2,11 @@
 
 ## Overview
 
-A project-agnostic, interactive skill that reviews design documents (DESIGN.md, architecture specs) against fundamental software architecture quality attributes before implementation begins. Modeled after the sci-review skill's interactive pattern: walks through issues one section at a time, one issue per `AskUserQuestion`, with opinionated recommendations.
+A project-agnostic, interactive skill that reviews design spec files (overview.md, data-model.md, etc.) against fundamental software architecture quality attributes before implementation begins. Modeled after the sci-review skill's interactive pattern: walks through issues one section at a time, one issue per `AskUserQuestion`, with opinionated recommendations.
 
 **Name:** `arch-review`
 **Trigger phrases:** "review the architecture", "architecture review", "review the design", "design review"
-**Output:** `docs/<topic>/ARCH-REVIEW.md`
+**Output:** `spec/arch-review.md`
 
 ## What It Is / What It Is Not
 
@@ -309,10 +309,10 @@ If the user does not respond or interrupts, note which decisions were left unres
 After full review completion, save to:
 
 ```
-docs/<topic>/ARCH-REVIEW.md
+spec/arch-review.md
 ```
 
-Where `<topic>` is a short kebab-case name derived from the design being reviewed. If ambiguous, ask with `AskUserQuestion`.
+The saved file is always `spec/arch-review.md` — one review per project, overwritten on re-review.
 
 The saved file is a clean, self-contained document — no conversation artifacts.
 

@@ -39,95 +39,96 @@ Each sub-skill reads only the rules relevant to its phase. The mapping is define
 
 On every invocation:
 
-1. **Detect topic** — figure out which `docs/<topic>/` the user is working on
-2. **Scan artifacts** — check which files exist to determine the current stage
+1. **Scan artifacts** — check which files exist in `spec/` to determine the current stage
 3. **Announce position** — tell the user where they are and what's next
 4. **Act** — either resume the workflow or handle a jump/restart request
 
 ## Stage Detection
 
-Scan `docs/<topic>/` for artifacts. The highest-stage artifact present determines the completed stage. The *next* stage is where work resumes.
+Scan `spec/` for artifacts. The highest-stage artifact present determines the completed stage. The *next* stage is where work resumes.
+
+Planning and implementation artifacts live in phase subdirectories (`spec/YYYYMMDD-keyword/`, e.g., `spec/20260512-authentication/`). To detect the current phase, sort directories matching `[0-9]*-*` under `spec/` and pick the last one.
 
 ```
-Artifact                              → Stage Completed        → Next Step
-─────────────────────────────────────────────────────────────────────────────
-(nothing in docs/<topic>/)            → (none)                 → Explore
-CODEBASE_MAP.md (project root)        → Explore                → grill-me
-docs/<topic>/COMMON.md                → Shared Understanding   → brainstorming
-docs/<topic>/DESIGN.md                → Design (partial)       → arch-review check
-docs/<topic>/ARCH-REVIEW.md           → Design (arch-reviewed) → sci-review check / planning
-docs/<topic>/PLAN.md + TASK.md        → Planning (partial)     → test-design-review check
-docs/<topic>/TEST-DESIGN-REVIEW.md    → Planning               → implementation
-docs/<topic>/IMPLEMENTATION-REPORT.md → Implementation         → workflow complete
+Artifact                                        → Stage Completed        → Next Step
+──────────────────────────────────────────────────────────────────────────────────────
+(nothing in spec/)                      → (none)                 → Explore
+codebase-map.md (project root)                  → Explore                → grill-me
+spec/common.md + atdd.md                → Shared Understanding   → brainstorming
+spec/overview.md                        → Design (partial)       → arch-review check
+spec/arch-review.md                     → Design (arch-reviewed) → sci-review check / planning
+spec/YYYYMMDD-keyword/plan.md + task.md         → Planning (partial)     → test-design-review check
+spec/YYYYMMDD-keyword/test-design-review.md     → Planning               → implementation
+spec/YYYYMMDD-keyword/implementation-report.md  → Implementation         → next phase or workflow complete
 ```
+
+### Phase progression
+
+After a phase's implementation-report.md is written, check atdd.md for remaining unchecked items:
+- **Unchecked acceptance criteria remain** → start the next planning cycle (new `YYYYMMDD-keyword/` directory)
+- **All items checked** → workflow complete
 
 ### Refinements
 
-- **DESIGN.md exists but no ARCH-REVIEW.md** → design was not reviewed. Resume at arch-review (brainstorming invokes this automatically, so the user may have interrupted mid-design).
-- **PLAN.md exists but no TEST-DESIGN-REVIEW.md** → plan was not verified. Resume at test-design-review (planning invokes this automatically).
-- **DESIGN.md + ARCH-REVIEW.md exist, content is algorithmic, but no SCI-REVIEW.md** → sci-review was skipped or interrupted. Ask user if they want to run it before planning.
-- **CODE-REVIEW.md exists but no IMPLEMENTATION-REPORT.md** → code review ran but implementation report wasn't written. Resume at report generation.
-
-## Topic Detection
-
-The user might name the topic explicitly ("resume auth work") or you may need to discover it:
-
-1. If the user names a topic, use it directly
-2. If not, scan `docs/` for subdirectories and pick the one with the most recent modification
-3. If `docs/` doesn't exist or is empty, this is a new project — start from Explore
-4. If multiple topics exist, ask the user which one via `AskUserQuestion`
+- **spec/ exists but no arch-review.md** → design was not reviewed. Resume at arch-review (brainstorming invokes this automatically, so the user may have interrupted mid-design).
+- **plan.md exists but no test-design-review.md** (in current phase dir) → plan was not verified. Resume at test-design-review (planning invokes this automatically).
+- **spec/ + arch-review.md exist, content is algorithmic, but no sci-review.md** → sci-review was skipped or interrupted. Ask user if they want to run it before planning.
+- **code-review.md exists but no implementation-report.md** (in current phase dir) → code review ran but implementation report wasn't written. Resume at report generation.
 
 ## The Workflow
 
-Five stages, executed in order. Each stage produces artifacts that the next stage consumes.
+Five stages, executed in order. Each stage produces artifacts that the next stage consumes. All artifacts live under `spec/` at the project root.
 
 ```mermaid
 flowchart TD
-    A[Start] --> B{Topic detected?}
-    B -- No --> C["Ask user for topic (AskUserQuestion)"]
-    B -- Yes --> D[Scan artifacts]
-    C --> D
+    A[Start] --> D[Scan spec/ artifacts]
 
     D --> E{Current stage?}
 
     E -->|No artifacts| F["Stage 1: Explore"]
-    E -->|COMMON.md missing| G["Stage 2: Shared Understanding"]
-    E -->|DESIGN.md missing| H["Stage 3: Design"]
-    E -->|PLAN.md missing| I["Stage 4: Planning"]
-    E -->|IMPLEMENTATION-REPORT.md missing| J["Stage 5: Implementation"]
+    E -->|common.md + atdd.md missing| G["Stage 2: Shared Understanding"]
+    E -->|overview.md missing| H["Stage 3: Design"]
+    E -->|plan.md missing| I["Stage 4: Planning"]
+    E -->|implementation-report.md missing| J["Stage 5: Implementation"]
     E -->|All complete| K[Workflow complete]
 
-    F -->|"Create CODEBASE_MAP.md"| G
-    G -->|"Invoke grill-me"| H
-    H -->|"Invoke brainstorming (auto: arch-review, sci-review)"| I
+    F -->|"Create codebase-map.md"| G
+    G -->|"Invoke grill-me → common.md + atdd.md"| H
+    H -->|"Invoke brainstorming → spec/ (auto: arch-review, sci-review)"| I
     I -->|"Invoke planning (auto: test-design-review)"| J
     J -->|"Invoke subagent-driven-development (auto: code-review)"| K
 
-    K --> L["Update CODEBASE_MAP.md + TODO.md"]
+    K --> L["Update codebase-map.md + summary.md + atdd.md"]
 ```
 
 ### Stage 1: Explore
 
-Check if `CODEBASE_MAP.md` exists at the project root.
+Check if `codebase-map.md` exists at the project root.
 
-- **If missing**: dispatch an Explore agent to survey the codebase. Document directory layout, key modules, entry points, dependencies, tech stack. Save as `CODEBASE_MAP.md`.
+- **If missing**: dispatch an Explore agent to survey the codebase. Document directory layout, key modules, entry points, dependencies, tech stack. Save as `codebase-map.md`.
 - **If exists**: read it to establish context.
 
 Then proceed to Stage 2.
 
 ### Stage 2: Shared Understanding (grill-me)
 
-Invoke the `grill-me` skill. It interviews the user and produces `docs/<topic>/COMMON.md`.
+Invoke the `grill-me` skill. It interviews the user and produces:
+- `spec/common.md` — shared understanding
+- `spec/atdd.md` — E2E acceptance checklist (Feature → User Story)
 
 grill-me's terminal state invokes brainstorming automatically — you don't need to bridge this transition.
 
 ### Stage 3: Design (brainstorming → arch-review → sci-review)
 
-Invoke the `brainstorming` skill. It reads COMMON.md and produces `docs/<topic>/DESIGN.md`.
+Invoke the `brainstorming` skill. It reads common.md and atdd.md, then produces full-suite design specs under `spec/`:
+- Always: `glossary.md`, `constraints.md`, `architecture-decisions.md`, `overview.md`, `non-functional-requirements.md`, `use-cases.md`, `flows.md`
+- When applicable: `data-model.md`, `api-design.md`, `deployment.md`, `ui/`
 
 brainstorming auto-invokes:
-- `arch-review` → updates DESIGN.md, creates ARCH-REVIEW.md
-- `sci-review` (if algorithmic content detected) → updates DESIGN.md, creates SCI-REVIEW.md
+- `arch-review` → validates spec documents, creates arch-review.md
+- `sci-review` (if algorithmic content detected) → validates spec, creates sci-review.md
+
+brainstorming also refines atdd.md with any new features/criteria discovered during design.
 
 brainstorming's terminal state invokes planning — the chain is automatic.
 
@@ -135,7 +136,7 @@ brainstorming's terminal state invokes planning — the chain is automatic.
 
 ### Stage 4: Planning (planning → test-design-review)
 
-Invoke the `planning` skill. It reads DESIGN.md and produces `docs/<topic>/PLAN.md`, `TASK.md`, `NEXT-STEP.md`.
+Invoke the `planning` skill. It reads spec files and atdd.md, scopes the next phase from unchecked acceptance criteria, and produces `spec/YYYYMMDD-keyword/plan.md`, `task.md`, `next-step.md`.
 
 planning auto-invokes:
 - `test-design-review` loop until verdict is "Ready"
@@ -146,21 +147,22 @@ planning's terminal state offers to invoke subagent-driven-development.
 
 ### Stage 5: Implementation (subagent-driven-development → code-review)
 
-Invoke the `subagent-driven-development` skill. It reads TASK.md and executes the plan.
+Invoke the `subagent-driven-development` skill. It reads task.md from the current phase and executes the plan.
 
 subagent-driven-development produces:
-- `docs/<topic>/CODE-REVIEW.md` (via code-review skill)
-- `docs/<topic>/IMPLEMENTATION-REPORT.md`
+- `spec/YYYYMMDD-keyword/code-review.md` (via code-review skill)
+- `spec/YYYYMMDD-keyword/implementation-report.md`
 
 **Critical issue loop**: if code review finds critical issues and user chooses to continue, loop back to planning.
 
 ### Post-Implementation
 
-After IMPLEMENTATION-REPORT.md is written:
+After implementation-report.md is written:
 
-1. **Update CODEBASE_MAP.md** — reflect the new code structure
-2. **Final TODO.md review** — verify all MVP items are marked done, deferred items retain their phase labels, and any items discovered during implementation are added. (TODO.md is created by brainstorming, reviewed by planning, and updated by subagent-driven-development — this is the final reconciliation.)
-3. **Worktree cleanup** — run final sweep (see Worktree Cleanup below)
+1. **Update codebase-map.md** — reflect the new code structure
+2. **Create/update summary.md** — write `spec/summary.md` following the template in `.claude/skills/brainstorming/summary-template.md`. Captures current status, ATDD progress, phase history, risks, technical debt, and open issues. If summary.md already exists (from a previous phase), append the new phase entry — never overwrite history.
+3. **Update atdd.md** — check off acceptance criteria that were verified during this phase's implementation
+4. **Worktree cleanup** — run final sweep (see Worktree Cleanup below)
 
 ## Jumping Between Stages
 
@@ -174,7 +176,7 @@ The user can request to jump to any stage. Valid commands:
 
 When jumping backward, warn the user that downstream artifacts may become stale:
 
-> "Jumping back to Design. Note: the existing PLAN.md and TASK.md were based on the current DESIGN.md — if you change the design, you'll need to re-plan too."
+> "Jumping back to Design. Note: the existing plan.md and task.md were based on the current spec files — if you change the design, you'll need to re-plan too."
 
 Do NOT delete downstream artifacts automatically. The user may want to reference them. The next forward pass through the workflow will overwrite them naturally.
 
@@ -186,7 +188,7 @@ When the user wants to work on an entirely new topic:
 2. If yes: tell the user to end the session (or clear context) and start a new one with the new idea
 3. Do NOT try to reset state in-place — a fresh context prevents confusion from stale conversation history
 
-If the user wants to work on a *different existing topic* (not start over), just switch the `<topic>` and re-detect position.
+Since all spec artifacts live under `spec/`, starting over means clearing or archiving the existing `spec/` directory.
 
 ## Worktree Cleanup
 
@@ -224,14 +226,15 @@ Rules:
 ## Interaction Rules
 
 - **Always use `AskUserQuestion`** for user interaction — plain-text questions don't work in skill mode
-- **Announce position clearly** — "You're at Stage 3 (Design). COMMON.md exists, DESIGN.md does not. Next step: invoke brainstorming."
+- **Announce position clearly** — "You're at Stage 3 (Design). common.md and atdd.md exist, spec/ does not. Next step: invoke brainstorming."
 - **One decision at a time** — don't overwhelm with options
 - **Respect the user's choice** — if they want to jump or skip, let them (with a warning about consequences)
 
 ## Cautions
 
 - Ask if the idea belongs to "Design" or "Implementation" when unclear
-- DESIGN.md should include full-suite development plan with MVP phases marked
-- TODO.md is created by brainstorming (from DESIGN.md scope/phases), reviewed by planning, and updated by implementation. It should clarify which items belong to the MVP
+- Spec files under `spec/` are the full-suite design — phasing is planning's job
+- atdd.md is created by grill-me (customer acceptance criteria), refined by brainstorming, and checked off during implementation
+- summary.md is created/updated after each phase's implementation completes — captures status, risks, and technical debt
 - Remove worktrees after implementation
-- CODEBASE_MAP.md creation uses the Explore agent
+- codebase-map.md creation uses the Explore agent

@@ -253,9 +253,9 @@ If the user does not respond to an AskUserQuestion or interrupts to move on, not
 After the full review is complete (all sections resolved and completion summary displayed), save the entire review result — including scope challenge, all section findings, required outputs, completion summary, and unresolved decisions — as a markdown file at:
 
 ```
-docs/<topic>/SCI-REVIEW.md
+spec/sci-review.md
 ```
 
-Where `<topic>` is a short, kebab-case name derived from the plan or document being reviewed (e.g., `solver-design`, `routing-algorithm`). If the topic is ambiguous, ask the user with AskUserQuestion before saving.
+The saved file is always `spec/sci-review.md` — one review per project, overwritten on re-review.
 
 The saved file should be a clean, self-contained document (no conversation artifacts) that a reader can understand without the original interactive session.

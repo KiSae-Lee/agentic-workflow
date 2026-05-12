@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "Use after grill-me has produced COMMON.md, or when the user already has a clear spec. Reads COMMON.md and produces a full-suite DESIGN.md (not MVP-scoped). Explores approaches, drafts the design, then auto-invokes arch-review to validate and update DESIGN.md before transitioning to planning."
+description: "Use after grill-me has produced common.md and atdd.md, or when the user already has a clear spec. Reads common.md and atdd.md, then produces full-suite design specs under spec/. Explores approaches, drafts spec documents, then auto-invokes arch-review to validate before transitioning to planning."
 allowed-tools:
   - Bash
   - Read
@@ -12,17 +12,17 @@ allowed-tools:
   - WebSearch
 ---
 
-# Brainstorming — Ideas Into Full-Suite Designs
+# Brainstorming — Ideas Into Full-Suite Specs
 
 ## Overview
 
-Turn shared understanding (COMMON.md) into a fully formed, full-suite design. This is NOT MVP-scoped — design the complete system, then mark what belongs to MVP vs. later phases.
+Turn shared understanding (common.md) and acceptance criteria (atdd.md) into full-suite design specifications. This is NOT MVP-scoped — design the complete system. Phasing is planning's job.
 
 **Announce at start**: "I'm using the brainstorming skill."
 
 <HARD-GATE>
 - Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it.
-- The design MUST be full-suite oriented. Mark MVP scope within the design, but design the whole system.
+- The design MUST be full-suite oriented. Design the whole system.
 </HARD-GATE>
 
 ## Bootstrap: Read Rules
@@ -42,22 +42,22 @@ Before drafting any design, read these rules to inform your decisions:
 
 ## Fast Path
 
-If the user already has a clear spec, a detailed description, or says something like "I know what I want, just help me structure it" — skip reading COMMON.md and go straight to proposing approaches. Ask one confirmation question to validate your understanding, then move on.
+If the user already has a clear spec, a detailed description, or says something like "I know what I want, just help me structure it" — skip reading common.md and go straight to proposing approaches. Ask one confirmation question to validate your understanding, then move on.
 
 ## Checklist
 
 You MUST complete these steps in order:
 
-1. **Read COMMON.md** — load the shared understanding from `docs/<topic>/COMMON.md`
+1. **Read inputs** — load `spec/common.md` and `spec/atdd.md`
 2. **Propose 2-3 approaches** — with trade-offs and your recommendation
-3. **Draft design** — write a complete full-suite `DESIGN.md`
-4. **Polish** — invoke writing skill to improve clarity and conciseness
+3. **Draft spec documents** — write full-suite specs under `spec/`
+4. **Polish** — invoke writing skill to improve clarity and conciseness of each spec file
 5. **Present and revise** — present to user, incorporate feedback, iterate until approved
-6. **Create TODO.md** — extract actionable items from approved design, mark MVP vs. later phases
-7. **Auto-invoke arch-review** — arch-review validates and auto-updates DESIGN.md
+6. **Refine atdd.md** — update acceptance criteria if design revealed new features or edge cases
+7. **Auto-invoke arch-review** — arch-review validates the spec documents
 8. **Transition to planning** — invoke planning skill to create implementation plan
 
-Determine the design file path from context: use `docs/<topic>/DESIGN.md`. The `<topic>` should match the COMMON.md location. If the path is ambiguous, ask the user with `AskUserQuestion` before proceeding.
+All spec artifacts are saved under `spec/` at the project root.
 
 ## The Process
 
@@ -67,9 +67,10 @@ EVERY question to the user MUST use the `AskUserQuestion` tool. Do NOT output a 
 
 **Loading shared understanding:**
 
-- Read `docs/<topic>/COMMON.md` produced by grill-me
-- If COMMON.md doesn't exist, fall back to exploring project context and asking clarifying questions (one at a time via `AskUserQuestion`)
-- Internalize: problem statement, key decisions, constraints, success criteria, assumptions
+- Read `spec/common.md` produced by grill-me
+- Read `spec/atdd.md` — the acceptance criteria define what "done" looks like
+- If common.md doesn't exist, fall back to exploring project context and asking clarifying questions (one at a time via `AskUserQuestion`)
+- Internalize: problem statement, key decisions, constraints, success criteria, assumptions, acceptance criteria
 
 **Exploring approaches:**
 
@@ -78,72 +79,116 @@ EVERY question to the user MUST use the `AskUserQuestion` tool. Do NOT output a 
 - Put your recommended option first with "(Recommended)" appended to its label
 - Include trade-offs in each option's `description`
 
-**Presenting the design:**
+**Drafting spec documents:**
 
-Write the complete design into the `DESIGN.md` file, covering relevant sections. Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced.
+Write design specs as **separate files** under `spec/`. Each spec file covers one aspect of the design. Scale each file to its complexity — a short file for a simple aspect, a detailed file for a nuanced one.
 
-The design MUST include:
+1. **Draft the spec files** — Write each spec document using the Write tool (see Spec Directory Structure below)
+2. **Polish with writing skill** — Invoke the `writing` skill to improve clarity and conciseness of each spec file before presenting
+3. **Present for review** — Use `AskUserQuestion` with `preview` showing an overview of all spec files. Options: "Approve", "Needs changes"
+4. **If "Needs changes"** — Ask what to change, revise the relevant spec file(s), then present again
+5. **If "Approve"** — Proceed to Refine atdd.md, then arch-review
 
-- **Full-suite scope** — the complete system design
-- **MVP marker** — clearly mark which components/features are MVP vs. later phases
-- **Phase boundaries** — how the system grows from MVP to full-suite
+The files are the source of truth — never present design content only in conversation text without also writing it to a file.
 
-1. **Draft the full design** — Write all sections into `DESIGN.md` using the Write tool
-2. **Polish with writing skill** — Invoke the `writing` skill to improve clarity and conciseness of DESIGN.md before presenting
-3. **Present for review** — Use `AskUserQuestion` with `preview` showing the complete design. Options: "Approve", "Needs changes"
-4. **If "Needs changes"** — Ask what to change, revise `DESIGN.md`, then present again
-5. **If "Approve"** — Proceed to Create TODO.md (step 6), then arch-review
+## Spec Directory Structure
 
-The file is the source of truth — never present design content only in conversation text without also writing it to the file.
+Read `./spec-templates.md` for the full template with few-shot examples for each file.
 
-## Create TODO.md
+```
+spec/
+  # Always create
+  glossary.md                       ← shared vocabulary, ubiquitous language
+  constraints.md                    ← technology, regulatory, organizational constraints
+  architecture-decisions.md         ← ADRs: decision, context, alternatives, consequences
+  overview.md                       ← C4 context + container, solution strategy, tech stack
+  non-functional-requirements.md    ← performance, security, scalability, availability targets
+  use-cases.md                      ← use case descriptions per Feature from atdd.md
+  flows.md                          ← sequence diagrams, state diagrams, event flows (mermaid)
 
-After the user approves the design and before invoking arch-review, create `docs/<topic>/TODO.md` by extracting actionable items from DESIGN.md:
-
-1. **Extract from scope & phases** — every feature, component, or capability listed in the design becomes a TODO item
-2. **Mark MVP items** — items in the MVP phase get `[MVP]` prefix
-3. **Mark deferred items** — items in later phases get their phase label (e.g., `[Phase 2]`, `[Phase 3]`)
-4. **Include non-functional items** — testing setup, observability, documentation tasks from the design
-
-Format:
-
-```markdown
-# TODO — <topic>
-
-Generated from DESIGN.md. Updated by planning and implementation phases.
-
-## MVP
-
-- [ ] [MVP] <item from design>
-- [ ] [MVP] <item from design>
-
-## Phase 2
-
-- [ ] [Phase 2] <item from design>
-
-## Phase 3
-
-- [ ] [Phase 3] <item from design>
-
-## Non-functional
-
-- [ ] <testing, observability, docs items>
+  # Create when applicable
+  data-model.md                     ← ER diagrams, schema design (when there's persistence)
+  api-design.md                     ← endpoints, contracts, error codes (when there's an API)
+  deployment.md                     ← infrastructure, containers, network topology (when ops alignment matters)
+  ui/                               ← HTML mockups + behavior descriptions (when there's a frontend)
+    <page-name>.html
+    <page-name>.md
 ```
 
-This file is the living checklist. Planning refines it. Implementation marks items done.
+**Rules:**
+- **Always create the 7 core files** — even if short, they establish shared understanding
+- **Skip conditional files** only when truly not applicable (no database = no `data-model.md`)
+- **Add custom files as needed** — e.g., `security-model.md`, `event-bus.md`, `migration-strategy.md`
+- **Use mermaid for all diagrams** — sequence diagrams, ER diagrams, state machines, flow charts
+- **Each file must be self-contained** — readable on its own without requiring other spec files for context
+- **Reference atdd.md Features** — spec files should trace back to the Features defined in atdd.md
+- **Cross-reference between specs** — link to related files (e.g., use-cases.md → flows.md for the sequence diagram)
+
+### glossary.md — Shared Vocabulary
+
+Defines the ubiquitous language for the project. Every team — frontend, backend, QA, product, ops — must use these terms consistently in code, specs, and conversation. Prevents "what do you mean by X?" misalignment in large teams. Table format: Term, Definition, Context. Include domain-specific terms, abbreviations, and terms that have multiple meanings across teams (e.g., "plan" in billing vs. project management).
+
+### constraints.md — Hard Boundaries
+
+Documents non-negotiable constraints that limit design choices. Three categories: technology constraints (mandated tech stack, infrastructure), regulatory constraints (GDPR, SOC 2, data residency), and organizational constraints (team size, deadlines, integration mandates). Each constraint includes the reason and its impact on design. This file prevents "why can't we just use X?" debates — the answer is here.
+
+### architecture-decisions.md — The "Why" Record
+
+Architecture Decision Records (ADRs). Each record captures: Status (proposed/accepted/deprecated), Context (what situation prompted the decision), Decision (what was chosen), Alternatives considered (with rejection reasons), and Consequences (positive and negative trade-offs). This file prevents teams from re-debating settled decisions and helps new members understand the rationale behind the architecture. Append new ADRs as decisions are made — never delete old ones.
+
+### overview.md — Architecture Entry Point
+
+The first file anyone reads. Contains: C4 Context diagram (system boundaries and external actors), C4 Container diagram (applications, data stores, message queues), tech stack table (technology, layer, rationale), solution strategy (key architectural approach), and cross-cutting concerns (auth strategy, error handling, observability, logging). This file answers "what does the system look like and how is it built?" at a glance.
+
+### non-functional-requirements.md — Measurable Quality Targets
+
+Explicit, measurable targets that prevent teams from making contradictory assumptions. Four categories: performance (p95 latency, page load, query time), scalability (concurrent users, data volume, tenant count), availability (uptime SLA, RTO, RPO), and security (encryption, compliance, vulnerability scanning). Every requirement has a metric, a target threshold, and a measurement method. "Fast" is not a requirement — "p95 < 200ms measured by k6 load test" is.
+
+### use-cases.md — Actor Interactions
+
+Detailed use case descriptions organized by Feature (matching atdd.md). Each use case includes: actors involved, preconditions, trigger, main flow (numbered steps), alternative flows (branching scenarios and error paths), postconditions (system state after completion), and traceability back to atdd.md acceptance criteria. This file bridges the gap between "what the user wants" (atdd.md) and "how the system behaves."
+
+### flows.md — Visual Behavior
+
+All dynamic behavior diagrams in one place. Three diagram types: sequence diagrams (component interactions for critical flows), state diagrams (lifecycle of stateful entities like orders, invitations, sessions), and event flow diagrams (async event propagation between services). All diagrams use mermaid. One diagram per critical flow — don't diagram trivial CRUD. This file replaces the narrower `sequence-diagrams.md` and is the visual companion to use-cases.md.
+
+### data-model.md — Persistence Design (when applicable)
+
+Create when the system has a database. Contains: ER diagram (mermaid erDiagram with entities, relationships, field types), access patterns table (query, tables involved, required indexes), and data strategy notes (multi-tenancy approach, partitioning, soft-delete policy). This file is the contract between application code and the database — backend developers write queries against it, DBAs optimize indexes from it.
+
+### api-design.md — Interface Contracts (when applicable)
+
+Create when the system exposes an API. For each endpoint: HTTP method and path, description, auth requirements, request schema (JSON example), response schema (JSON example), and error table (error code, HTTP status, condition). This file is the contract between frontend and backend teams — frontend builds against it, backend implements it. Version the API path (e.g., `/api/v1/`).
+
+### deployment.md — Production Topology (when applicable)
+
+Create when ops/SRE alignment matters. Contains: deployment topology diagram (mermaid — infrastructure, services, connections), environment configuration table (env vars, descriptions, examples), and scaling strategy (component, strategy, trigger). This file answers "how does this run in production?" for the ops team and prevents developers from designing things that can't be deployed.
+
+### ui/ directory — Frontend Specs (when applicable)
+
+Create when the system has a user interface. For each page or screen, two files: `<page-name>.html` (static HTML mockup showing layout and structure, semantic HTML with minimal inline styling) and `<page-name>.md` (behavior description: purpose, layout sections, interaction table with element/action/result, states — loading/empty/populated/error, and responsive breakpoints). This is the contract between design and frontend engineering.
+
+## Refine atdd.md
+
+After the user approves the spec and before invoking arch-review, review and update `spec/atdd.md`:
+
+1. **Add discovered criteria** — design work often reveals features or edge cases the customer didn't articulate during grilling. Add them as new user stories under the appropriate Feature.
+2. **Add new Features** — if the design introduced capabilities not in the original atdd.md (e.g., admin tools, monitoring dashboards), add them as new Feature sections.
+3. **Do NOT remove or rewrite existing items** — atdd.md is the customer's voice. Only add, never subtract.
+4. **Do NOT add implementation details** — keep items user-observable.
 
 ## Auto-Invoke Arch-Review
 
-After the user approves the design and TODO.md is created:
+After the user approves the spec and atdd.md is refined:
 
-1. **Invoke `arch-review` skill** — it reviews DESIGN.md against architecture quality attributes
-2. **Arch-review auto-updates DESIGN.md** — issues and decisions from the review are incorporated directly into the design document
+1. **Invoke `arch-review` skill** — it reviews the spec documents (especially `overview.md` and `data-model.md`) against architecture quality attributes
+2. **Arch-review updates spec files** — issues and decisions from the review are incorporated into the relevant spec documents
 
 The user does NOT need to manually trigger arch-review. It runs automatically as part of the brainstorming flow.
 
 ## Sci-Review Detection
 
-After arch-review completes, scan the design for algorithmic/scientific content. Check if the design involves ANY of:
+After arch-review completes, scan the spec for algorithmic/scientific content. Check if the design involves ANY of:
 
 - Algorithm design or implementation (sorting, searching, graph algorithms, optimization)
 - Numerical methods (floating-point arithmetic, interpolation, solvers, convergence)
@@ -155,8 +200,8 @@ After arch-review completes, scan the design for algorithmic/scientific content.
 **If algorithmic/scientific content is detected:**
 
 1. **Invoke `sci-review` skill** — it reviews the design for correctness, numerical stability, complexity, and edge cases
-2. **Update DESIGN.md** — incorporate sci-review findings into the design
-3. **Save SCI-REVIEW.md** alongside the design
+2. **Update spec files** — incorporate sci-review findings into the relevant spec documents
+3. **Save sci-review.md** alongside the spec
 
 The user does NOT need to manually trigger sci-review. It runs automatically when algorithmic content is detected.
 
@@ -164,7 +209,7 @@ The user does NOT need to manually trigger sci-review. It runs automatically whe
 
 ## Terminal State
 
-After arch-review (and sci-review if applicable) completes and DESIGN.md is updated, invoke the `planning` skill. Do NOT invoke any other implementation skill. The ONLY skill you invoke after brainstorming is planning.
+After arch-review (and sci-review if applicable) completes and spec files are updated, invoke the `planning` skill. Do NOT invoke any other implementation skill. The ONLY skill you invoke after brainstorming is planning.
 
 ## Key Principles
 
@@ -172,7 +217,8 @@ After arch-review (and sci-review if applicable) completes and DESIGN.md is upda
 - **One question at a time** — Don't overwhelm with multiple questions
 - **Multiple choice preferred** — Use `options` in `AskUserQuestion` when possible
 - **Use `preview` for comparisons** — When presenting approaches or design sections
-- **Full-suite first, MVP second** — Design the whole system, then scope MVP within it
-- **YAGNI ruthlessly within each phase** — But don't ignore future phases in the design
+- **Full-suite design** — Design the whole system, phasing is planning's job
+- **YAGNI ruthlessly** — But don't ignore capabilities the full design needs
 - **Explore alternatives** — Always propose 2-3 approaches before settling
 - **Incremental validation** — Present design, get approval before moving on
+- **Spec files trace to atdd.md** — every spec file should reference the Features it supports

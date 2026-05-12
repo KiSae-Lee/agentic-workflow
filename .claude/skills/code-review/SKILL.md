@@ -32,7 +32,7 @@ Before dispatching the review subagent, read these rules and include relevant se
    - Prompt: Read and include the full contents of `./code-review-agent-prompt.md`
    - Provide the subagent with: review scope, commit/branch info, file list
 3. The subagent performs: DISCOVER -> READ -> ANALYZE -> VERIFY -> REPORT
-4. The subagent saves the report to `docs/<topic>/CODE-REVIEW.md`
+4. The subagent saves the report to `spec/code-review.md`
 5. Report the assessment summary back to the user (verdict + issue counts only)
 
 ## When to Use

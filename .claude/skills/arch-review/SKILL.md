@@ -9,7 +9,7 @@ description: |
   reusability), evolutionary (modifiability, agility), and economic (TCO/ROI, standards).
   Interactive walk-through with opinionated recommendations. Use when asked to "review
   the architecture", "review the design", "architecture review", "design review", or
-  "lock in the design" before implementation. Also trigger when the user has a DESIGN.md
+  "lock in the design" before implementation. Also trigger when the user has spec files
   or architecture document they want evaluated before coding begins.
 allowed-tools:
   - Read
@@ -354,20 +354,20 @@ If the user does not respond to an AskUserQuestion or interrupts to move on, not
 After the full review is complete (all sections resolved and completion summary displayed), save the entire review result — including scope challenge, all section findings, quality attribute summary matrix, required outputs, completion summary, and unresolved decisions — as a markdown file at:
 
 ```
-docs/<topic>/ARCH-REVIEW.md
+spec/arch-review.md
 ```
 
-Where `<topic>` is a short, kebab-case name derived from the design being reviewed (e.g., `scene-management`, `auth-middleware`). If the topic is ambiguous, ask the user with AskUserQuestion before saving.
+The saved file is always `spec/arch-review.md` — one review per project, overwritten on re-review.
 
 The saved file should be a clean, self-contained document (no conversation artifacts) that a reader can understand without the original interactive session.
 
-## Auto-Update DESIGN.md
+## Auto-Update Spec Files
 
-When invoked from the `brainstorming` skill (auto-invocation), after saving ARCH-REVIEW.md, also update `docs/<topic>/DESIGN.md` directly:
+When invoked from the `brainstorming` skill (auto-invocation), after saving arch-review.md, also update the relevant spec files under `spec/` directly:
 
-1. Incorporate all accepted decisions from the review into the design document
+1. Incorporate all accepted decisions from the review into the relevant spec files (especially `overview.md` and `data-model.md`)
 2. Add/update sections that were flagged as incomplete or missing
-3. Annotate deferred items in the design's scope section
+3. Annotate deferred items in the spec's scope section
 4. Update architecture diagrams if structural changes were accepted
 
-Do NOT ask the user whether to update DESIGN.md — this is automatic. The review drives the update.
+Do NOT ask the user whether to update spec files — this is automatic. The review drives the update.

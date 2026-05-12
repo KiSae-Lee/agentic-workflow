@@ -121,4 +121,6 @@ EOF
 - NEVER run destructive commands (--force, hard reset) without explicit request
 - NEVER skip hooks (--no-verify) unless user asks
 - NEVER force push to main/master
+- NEVER include `Co-Authored-By` signature in commit messages
 - If commit fails due to hooks, fix and create NEW commit (don't amend)
+- Instead of `cd <path> && git <command>`, use the `-C` flag (e.g., `git -C <path> status`)

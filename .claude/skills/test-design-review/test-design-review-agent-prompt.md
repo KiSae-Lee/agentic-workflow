@@ -8,7 +8,7 @@ You are running as the `test-design-reviewer` subagent. Follow this protocol pre
 
 - **CODEBASE_PATH** — absolute path to the codebase root.
 - **TARGET_ITEMS** — what to review (feature name, plan file path, commit/branch range, module path, or "recent changes").
-- **REPORT_OUTPUT_PATH** — where to save the final report. Default: `<CODEBASE_PATH>/TEST-DESIGN-REVIEW.md`.
+- **REPORT_OUTPUT_PATH** — where to save the final report. Default: `<CODEBASE_PATH>/test-design-review.md`.
 - **REPORT_TEMPLATE_PATH** — absolute path to `test-design-review-report-template.md`.
 - **TDD_STANDARD_PATH** — absolute path to the standard. Default: `<CODEBASE_PATH>/.claude/skills/control-tower/rules/TDD.md`.
 
@@ -40,10 +40,10 @@ Build a picture of the target items and the existing test surface.
 
 Interpret `TARGET_ITEMS`:
 
-- **Plan file path** (e.g., `PLAN.md`, `DESIGN.md`) → read the file and extract the list of features / modules to be built.
+- **Plan file path** (e.g., `plan.md`, `task.md`) → read the file and extract the list of features / modules to be built.
 - **Commit / branch range** → run `git -C <CODEBASE_PATH> diff --name-only <range>` to enumerate changed files; group them into logical items (one feature ≈ one item).
 - **Module path** → list source files under that path; treat each top-level module / file group as an item.
-- **"Recent changes"** → use `git -C <CODEBASE_PATH> log --since="2 weeks ago" --name-only` or read any `IMPLEMENTATION-REPORT.md` / open plans.
+- **"Recent changes"** → use `git -C <CODEBASE_PATH> log --since="2 weeks ago" --name-only` or read any `implementation-report.md` / open plans.
 - **Feature name only** → grep the codebase for related files and recent commits.
 
 Produce a concrete list: `[item_1, item_2, ...]`. If no items can be identified, halt with `Verdict: Blocked` and ask the dispatcher for a clearer target.

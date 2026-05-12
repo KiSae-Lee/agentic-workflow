@@ -11,8 +11,8 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 <HARD-GATE>
 This skill is NOT complete until BOTH output artifacts exist on disk:
-1. `docs/<topic>/CODE-REVIEW.md` — produced by dispatching the `code-review` skill
-2. `docs/<topic>/IMPLEMENTATION-REPORT.md` — written by you after code review
+1. `spec/YYYYMMDD-keyword/code-review.md` — produced by dispatching the `code-review` skill
+2. `spec/YYYYMMDD-keyword/implementation-report.md` — written by you after code review
 
 After all implementation tasks finish, you MUST produce these artifacts before reporting completion to the user or returning control to control-tower. If the user interrupts or changes direction mid-execution, resume artifact production when control returns. No exceptions.
 </HARD-GATE>
@@ -41,7 +41,7 @@ Before dispatching implementer subagents, read these rules and include relevant 
 
 ## The Process
 
-1. **Read plan** — Extract all tasks with full text from `docs/<topic>/TASK.md`, note context
+1. **Read plan** — Find the current phase directory (sort `spec/[0-9]*-*/` directories, pick the last one) and extract all tasks with full text from its `task.md`, note context
 2. **Create task tracking** — Use `TaskCreate` for each task
 3. **Analyze dependencies** — Classify tasks as independent or dependent:
    - **Independent:** Tasks that touch different files/modules with no shared state
@@ -92,9 +92,9 @@ Wave 3 (parallel): Task 5, Task 6          ← independent, but depend on Task 4
 
 Each wave completes (including reviews and merges) before the next wave begins.
 
-5. **Update TODO.md** — Read `docs/<topic>/TODO.md` and mark completed items as `[x]`. Add any new items discovered during implementation. Do NOT remove deferred items.
-6. **Final review** — Dispatch code-review skill for the entire implementation (report saved to `docs/<topic>/CODE-REVIEW.md`)
-7. **Implementation report** — Write `docs/<topic>/IMPLEMENTATION-REPORT.md` summarizing what was built, files changed, and any open concerns
+5. **Update atdd.md** — Read `spec/atdd.md` and mark completed items as `[x]`. Add any new items discovered during implementation. Do NOT remove deferred items.
+6. **Final review** — Dispatch code-review skill for the entire implementation (report saved to `spec/YYYYMMDD-keyword/code-review.md`)
+7. **Implementation report** — Write `spec/YYYYMMDD-keyword/implementation-report.md` summarizing what was built, files changed, and any open concerns
 
 ## Prompt Templates
 
@@ -106,15 +106,15 @@ Each wave completes (including reviews and merges) before the next wave begins.
 
 At the end of execution, these files must exist:
 
-- **`docs/<topic>/CODE-REVIEW.md`** — Final code review report
-- **`docs/<topic>/IMPLEMENTATION-REPORT.md`** — Summary of implementation: what was built, files changed, test results, open concerns
+- **`spec/YYYYMMDD-keyword/code-review.md`** — Final code review report
+- **`spec/YYYYMMDD-keyword/implementation-report.md`** — Summary of implementation: what was built, files changed, test results, open concerns
 
 ## Example Workflow
 
 ```
 You: I'm using Subagent-Driven Development to execute this plan.
 
-[Read TASK.md: extract all 5 tasks with full text and context]
+[Read task.md: extract all 5 tasks with full text and context]
 [TaskCreate for each task]
 [Analyze dependencies:
   Task 1 (buffer module) — independent
@@ -166,9 +166,9 @@ You: I'm using Subagent-Driven Development to execute this plan.
 
 --- Final ---
 
-[Update TODO.md — mark completed items, add discovered items]
-[Dispatch code-review skill for entire implementation → CODE-REVIEW.md]
-[Write IMPLEMENTATION-REPORT.md]
+[Update atdd.md — mark completed items, add discovered items]
+[Dispatch code-review skill for entire implementation → code-review.md]
+[Write implementation-report.md]
 
 Done!
 ```
@@ -179,8 +179,8 @@ Done!
 Before announcing completion or returning control to the caller, verify BOTH artifacts exist:
 
 ```
-docs/<topic>/CODE-REVIEW.md          — exists? → yes/no
-docs/<topic>/IMPLEMENTATION-REPORT.md — exists? → yes/no
+spec/YYYYMMDD-keyword/code-review.md          — exists? → yes/no
+spec/YYYYMMDD-keyword/implementation-report.md — exists? → yes/no
 ```
 
 If either is missing, produce it NOW. Do not skip because:
@@ -192,8 +192,9 @@ If either is missing, produce it NOW. Do not skip because:
 
 After BOTH artifacts exist, the workflow continues with:
 
-1. **Update CODEBASE_MAP.md** — reflect the new code structure
-2. **Update TODO.md** — mark completed items, add any new items discovered
+1. **Update codebase-map.md** — reflect the new code structure
+2. **Update atdd.md** — mark completed items, add any new items discovered
+3. **Create/update summary.md** — write or update `spec/summary.md` following the template in `.claude/skills/brainstorming/summary-template.md`
 
 These updates happen in the main conversation, not via subagent. Subagent-driven-development ends after producing its output artifacts.
 
@@ -201,7 +202,7 @@ These updates happen in the main conversation, not via subagent. Subagent-driven
 
 **Never:**
 
-- **End the skill without producing CODE-REVIEW.md and IMPLEMENTATION-REPORT.md** (the skill is not done until both exist)
+- **End the skill without producing code-review.md and implementation-report.md** (the skill is not done until both exist)
 - Start implementation on main/master branch without explicit user consent
 - Skip reviews (spec compliance OR code quality)
 - Proceed with unfixed issues
