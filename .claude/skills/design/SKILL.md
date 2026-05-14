@@ -97,38 +97,41 @@ Read `./spec-templates.md` for the full template with few-shot examples for each
 
 ```
 spec/
-  # Always create
-  glossary.md                       ← shared vocabulary, ubiquitous language
-  constraints.md                    ← technology, regulatory, organizational constraints
-  architecture-decisions.md         ← ADRs: decision, context, alternatives, consequences
-  overview.md                       ← C4 context + container, solution strategy, tech stack
-  non-functional-requirements.md    ← performance, security, scalability, availability targets
-  use-cases.md                      ← use case descriptions per Feature from atdd.md
-  flows.md                          ← sequence diagrams, state diagrams, event flows (mermaid)
+  # Top-level — always create
+  glossary.md                         ← shared vocabulary, ubiquitous language
+  architecture-decisions.md           ← ADRs: decision, context, alternatives, consequences
+  overview.md                         ← C4 context + container, solution strategy, tech stack
+  flows.md                            ← sequence diagrams, state diagrams, event flows (mermaid)
 
-  # Create when applicable
-  data-model.md                     ← ER diagrams, schema design (when there's persistence)
-  api-design.md                     ← endpoints, contracts, error codes (when there's an API)
-  deployment.md                     ← infrastructure, containers, network topology (when ops alignment matters)
-  ui/                               ← HTML mockups + behavior descriptions (when there's a frontend)
-    <page-name>.html
-    <page-name>.md
+  # tech-docs/ — always create the core files
+  tech-docs/
+    constraints.md                    ← technology, regulatory, organizational constraints
+    non-functional-requirements.md    ← performance, security, scalability, availability targets
+    use-cases.md                      ← use case descriptions per Feature from atdd.md
+
+    # tech-docs/ — create when applicable
+    data-model.md                     ← ER diagrams, schema design (when there's persistence)
+    api-design.md                     ← endpoints, contracts, error codes (when there's an API)
+    deployment.md                     ← infrastructure, containers, network topology (when ops alignment matters)
+    ui/                               ← HTML mockups + behavior descriptions (when there's a frontend)
+      <page-name>.html
+      <page-name>.md
 ```
 
 **Rules:**
-- **Always create the 7 core files** — even if short, they establish shared understanding
-- **Skip conditional files** only when truly not applicable (no database = no `data-model.md`)
-- **Add custom files as needed** — e.g., `security-model.md`, `event-bus.md`, `migration-strategy.md`
+- **Always create the 7 core files** — even if short, they establish shared understanding (4 at the top of `spec/`, 3 under `spec/tech-docs/`)
+- **Skip conditional files** only when truly not applicable (no database = no `tech-docs/data-model.md`)
+- **Add custom files as needed** under `tech-docs/` — e.g., `security-model.md`, `event-bus.md`, `migration-strategy.md`
 - **Use mermaid for all diagrams** — sequence diagrams, ER diagrams, state machines, flow charts
 - **Each file must be self-contained** — readable on its own without requiring other spec files for context
 - **Reference atdd.md Features** — spec files should trace back to the Features defined in atdd.md
-- **Cross-reference between specs** — link to related files (e.g., use-cases.md → flows.md for the sequence diagram)
+- **Cross-reference between specs** — link to related files (e.g., `tech-docs/use-cases.md` → `flows.md` for the sequence diagram)
 
 ### glossary.md — Shared Vocabulary
 
 Defines the ubiquitous language for the project. Every team — frontend, backend, QA, product, ops — must use these terms consistently in code, specs, and conversation. Prevents "what do you mean by X?" misalignment in large teams. Table format: Term, Definition, Context. Include domain-specific terms, abbreviations, and terms that have multiple meanings across teams (e.g., "plan" in billing vs. project management).
 
-### constraints.md — Hard Boundaries
+### tech-docs/constraints.md — Hard Boundaries
 
 Documents non-negotiable constraints that limit design choices. Three categories: technology constraints (mandated tech stack, infrastructure), regulatory constraints (GDPR, SOC 2, data residency), and organizational constraints (team size, deadlines, integration mandates). Each constraint includes the reason and its impact on design. This file prevents "why can't we just use X?" debates — the answer is here.
 
@@ -140,11 +143,11 @@ Architecture Decision Records (ADRs). Each record captures: Status (proposed/acc
 
 The first file anyone reads. Contains: C4 Context diagram (system boundaries and external actors), C4 Container diagram (applications, data stores, message queues), tech stack table (technology, layer, rationale), solution strategy (key architectural approach), and cross-cutting concerns (auth strategy, error handling, observability, logging). This file answers "what does the system look like and how is it built?" at a glance.
 
-### non-functional-requirements.md — Measurable Quality Targets
+### tech-docs/non-functional-requirements.md — Measurable Quality Targets
 
 Explicit, measurable targets that prevent teams from making contradictory assumptions. Four categories: performance (p95 latency, page load, query time), scalability (concurrent users, data volume, tenant count), availability (uptime SLA, RTO, RPO), and security (encryption, compliance, vulnerability scanning). Every requirement has a metric, a target threshold, and a measurement method. "Fast" is not a requirement — "p95 < 200ms measured by k6 load test" is.
 
-### use-cases.md — Actor Interactions
+### tech-docs/use-cases.md — Actor Interactions
 
 Detailed use case descriptions organized by Feature (matching atdd.md). Each use case includes: actors involved, preconditions, trigger, main flow (numbered steps), alternative flows (branching scenarios and error paths), postconditions (system state after completion), and traceability back to atdd.md acceptance criteria. This file bridges the gap between "what the user wants" (atdd.md) and "how the system behaves."
 
@@ -152,19 +155,19 @@ Detailed use case descriptions organized by Feature (matching atdd.md). Each use
 
 All dynamic behavior diagrams in one place. Three diagram types: sequence diagrams (component interactions for critical flows), state diagrams (lifecycle of stateful entities like orders, invitations, sessions), and event flow diagrams (async event propagation between services). All diagrams use mermaid. One diagram per critical flow — don't diagram trivial CRUD. This file replaces the narrower `sequence-diagrams.md` and is the visual companion to use-cases.md.
 
-### data-model.md — Persistence Design (when applicable)
+### tech-docs/data-model.md — Persistence Design (when applicable)
 
 Create when the system has a database. Contains: ER diagram (mermaid erDiagram with entities, relationships, field types), access patterns table (query, tables involved, required indexes), and data strategy notes (multi-tenancy approach, partitioning, soft-delete policy). This file is the contract between application code and the database — backend developers write queries against it, DBAs optimize indexes from it.
 
-### api-design.md — Interface Contracts (when applicable)
+### tech-docs/api-design.md — Interface Contracts (when applicable)
 
 Create when the system exposes an API. For each endpoint: HTTP method and path, description, auth requirements, request schema (JSON example), response schema (JSON example), and error table (error code, HTTP status, condition). This file is the contract between frontend and backend teams — frontend builds against it, backend implements it. Version the API path (e.g., `/api/v1/`).
 
-### deployment.md — Production Topology (when applicable)
+### tech-docs/deployment.md — Production Topology (when applicable)
 
 Create when ops/SRE alignment matters. Contains: deployment topology diagram (mermaid — infrastructure, services, connections), environment configuration table (env vars, descriptions, examples), and scaling strategy (component, strategy, trigger). This file answers "how does this run in production?" for the ops team and prevents developers from designing things that can't be deployed.
 
-### ui/ directory — Frontend Specs (when applicable)
+### tech-docs/ui/ directory — Frontend Specs (when applicable)
 
 Create when the system has a user interface. For each page or screen, two files: `<page-name>.html` (static HTML mockup showing layout and structure, semantic HTML with minimal inline styling) and `<page-name>.md` (behavior description: purpose, layout sections, interaction table with element/action/result, states — loading/empty/populated/error, and responsive breakpoints). This is the contract between design and frontend engineering.
 
@@ -181,8 +184,9 @@ After the user approves the spec and before invoking arch-review, review and upd
 
 After the user approves the spec and atdd.md is refined:
 
-1. **Invoke `arch-review` skill** — it reviews the spec documents (especially `overview.md` and `data-model.md`) against architecture quality attributes
-2. **Arch-review updates spec files** — issues and decisions from the review are incorporated into the relevant spec documents
+1. **Invoke `arch-review` skill** — it reviews the spec documents (especially `overview.md` and `tech-docs/data-model.md`) against architecture quality attributes
+2. **Arch-review saves a timestamped report** under `spec/arch-review/YYYY-MM-DD HH:MM:SS.md`. Multiple reviews accumulate — never overwrite.
+3. **Arch-review updates spec files** — issues and decisions from the review are incorporated into the relevant spec documents
 
 The user does NOT need to manually trigger arch-review. It runs automatically as part of the design flow.
 
@@ -201,7 +205,7 @@ After arch-review completes, scan the spec for algorithmic/scientific content. C
 
 1. **Invoke `sci-review` skill** — it reviews the design for correctness, numerical stability, complexity, and edge cases
 2. **Update spec files** — incorporate sci-review findings into the relevant spec documents
-3. **Save sci-review.md** alongside the spec
+3. **Save a timestamped report** under `spec/sci-review/YYYY-MM-DD HH:MM:SS.md`. Multiple reviews accumulate — never overwrite.
 
 The user does NOT need to manually trigger sci-review. It runs automatically when algorithmic content is detected.
 

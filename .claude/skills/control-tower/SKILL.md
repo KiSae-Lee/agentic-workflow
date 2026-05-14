@@ -47,32 +47,36 @@ On every invocation:
 
 Scan `spec/` for artifacts. The highest-stage artifact present determines the completed stage. The *next* stage is where work resumes.
 
-Planning and implementation artifacts live in phase subdirectories (`spec/YYYYMMDD-keyword/`, e.g., `spec/20260512-authentication/`). To detect the current phase, sort directories matching `[0-9]*-*` under `spec/` and pick the last one.
+Planning and implementation artifacts live in phase subdirectories under `spec/history/`, named `YYYY-MM-DDTHH-MM-SS_keyword` (e.g., `spec/history/2026-05-12T09-30-00_authentication/`). To detect the current phase, sort directories matching `[0-9]*` under `spec/history/` and pick the last one.
 
 ```
 Artifact                                        → Stage Completed        → Next Step
 ──────────────────────────────────────────────────────────────────────────────────────
-(nothing in spec/)                      → (none)                 → Explore
+(nothing in spec/)                              → (none)                 → Explore
 codebase-map.md (project root)                  → Explore                → grill-me
-spec/common.md + atdd.md                → Shared Understanding   → design
-spec/overview.md                        → Design (partial)       → arch-review check
-spec/arch-review.md                     → Design (arch-reviewed) → sci-review check / planning
-spec/YYYYMMDD-keyword/plan.md + task.md         → Planning (partial)     → test-design-review check
-spec/YYYYMMDD-keyword/test-design-review.md     → Planning               → implementation
-spec/YYYYMMDD-keyword/implementation-report.md  → Implementation         → next phase or workflow complete
+spec/common.md + atdd.md                        → Shared Understanding   → design
+spec/overview.md                                → Design (partial)       → arch-review check
+spec/arch-review/*.md (≥1 file)                 → Design (arch-reviewed) → sci-review check / planning
+spec/history/<phase>/plan.md + task.md          → Planning (partial)     → test-design-review check
+spec/history/<phase>/test-design-review.md      → Planning               → implementation
+spec/history/<phase>/implementation-report.md   → Implementation         → next phase or workflow complete
 ```
+
+Arch-review and sci-review reports are timestamped files inside `spec/arch-review/` and `spec/sci-review/` (filename: `YYYY-MM-DD HH:MM:SS.md`). Multiple reviews accumulate over time — the latest file is the most recent run.
+
+`spec/tech-debt.md` is a project-lifetime artifact (not stage-bound). It is created lazily by `subagent-driven-development` on first debt registration. Its absence is normal early in a project — do NOT treat it as a missing artifact. Once present, every implementation phase MUST refresh its Dashboard.
 
 ### Phase progression
 
 After a phase's implementation-report.md is written, check atdd.md for remaining unchecked items:
-- **Unchecked acceptance criteria remain** → start the next planning cycle (new `YYYYMMDD-keyword/` directory)
+- **Unchecked acceptance criteria remain** → start the next planning cycle (new `spec/history/YYYY-MM-DDTHH-MM-SS_keyword/` directory)
 - **All items checked** → workflow complete
 
 ### Refinements
 
-- **spec/ exists but no arch-review.md** → design was not reviewed. Resume at arch-review (design invokes this automatically, so the user may have interrupted mid-design).
+- **spec/ exists but `spec/arch-review/` is empty or missing** → design was not reviewed. Resume at arch-review (design invokes this automatically, so the user may have interrupted mid-design).
 - **plan.md exists but no test-design-review.md** (in current phase dir) → plan was not verified. Resume at test-design-review (planning invokes this automatically).
-- **spec/ + arch-review.md exist, content is algorithmic, but no sci-review.md** → sci-review was skipped or interrupted. Ask user if they want to run it before planning.
+- **spec/ + `spec/arch-review/` populated, content is algorithmic, but `spec/sci-review/` is empty or missing** → sci-review was skipped or interrupted. Ask user if they want to run it before planning.
 - **code-review.md exists but no implementation-report.md** (in current phase dir) → code review ran but implementation report wasn't written. Resume at report generation.
 
 ## The Workflow
@@ -98,7 +102,10 @@ flowchart TD
     I -->|"Invoke planning (auto: test-design-review)"| J
     J -->|"Invoke subagent-driven-development (auto: code-review)"| K
 
-    K --> L["Update codebase-map.md + summary.md + atdd.md"]
+    K --> L["Post-impl: verify spec/tech-debt.md + update codebase-map.md + summary.md + atdd.md"]
+    L --> M{Open P0/P1 debt + atdd all checked?}
+    M -->|Yes| N["Workflow-complete tech-debt review<br/>(offer debt-only cycle / accept / re-evaluate)"]
+    M -->|No| O[Loop to next planning cycle]
 ```
 
 ### Stage 1: Explore
@@ -121,12 +128,13 @@ grill-me's terminal state invokes design automatically — you don't need to bri
 ### Stage 3: Design (design → arch-review → sci-review)
 
 Invoke the `design` skill. It reads common.md and atdd.md, then produces full-suite design specs under `spec/`:
-- Always: `glossary.md`, `constraints.md`, `architecture-decisions.md`, `overview.md`, `non-functional-requirements.md`, `use-cases.md`, `flows.md`
-- When applicable: `data-model.md`, `api-design.md`, `deployment.md`, `ui/`
+- Always at top of `spec/`: `glossary.md`, `architecture-decisions.md`, `overview.md`, `flows.md`
+- Always under `spec/tech-docs/`: `constraints.md`, `non-functional-requirements.md`, `use-cases.md`
+- When applicable under `spec/tech-docs/`: `data-model.md`, `api-design.md`, `deployment.md`, `ui/`
 
 design auto-invokes:
-- `arch-review` → validates spec documents, creates arch-review.md
-- `sci-review` (if algorithmic content detected) → validates spec, creates sci-review.md
+- `arch-review` → validates spec documents, appends a new timestamped file to `spec/arch-review/`
+- `sci-review` (if algorithmic content detected) → validates spec, appends a new timestamped file to `spec/sci-review/`
 
 design also refines atdd.md with any new features/criteria discovered during design.
 
@@ -136,7 +144,7 @@ design's terminal state invokes planning — the chain is automatic.
 
 ### Stage 4: Planning (planning → test-design-review)
 
-Invoke the `planning` skill. It reads spec files and atdd.md, scopes the next phase from unchecked acceptance criteria, and produces `spec/YYYYMMDD-keyword/plan.md`, `task.md`, `next-step.md`.
+Invoke the `planning` skill. It reads spec files and atdd.md, scopes the next phase from unchecked acceptance criteria, and produces `spec/history/<phase>/plan.md`, `task.md`, `next-step.md` (where `<phase>` is `YYYY-MM-DDTHH-MM-SS_keyword`).
 
 planning auto-invokes:
 - `test-design-review` loop until verdict is "Ready"
@@ -150,8 +158,9 @@ planning's terminal state offers to invoke subagent-driven-development.
 Invoke the `subagent-driven-development` skill. It reads task.md from the current phase and executes the plan.
 
 subagent-driven-development produces:
-- `spec/YYYYMMDD-keyword/code-review.md` (via code-review skill)
-- `spec/YYYYMMDD-keyword/implementation-report.md`
+- `spec/history/<phase>/code-review.md` (via code-review skill)
+- `spec/history/<phase>/implementation-report.md`
+- `spec/tech-debt.md` — created or updated (Dashboard refresh + new Active entries + closed entries moved). May be absent only if no debt has ever been registered in the project.
 
 **Critical issue loop**: if code review finds critical issues and user chooses to continue, loop back to planning.
 
@@ -160,9 +169,20 @@ subagent-driven-development produces:
 After implementation-report.md is written:
 
 1. **Update codebase-map.md** — reflect the new code structure
-2. **Create/update summary.md** — write `spec/summary.md` following the template in `.claude/skills/subagent-driven-development/summary-template.md`. Captures current status, ATDD progress, phase history, risks, technical debt, and open issues. If summary.md already exists (from a previous phase), append the new phase entry — never overwrite history.
-3. **Update atdd.md** — check off acceptance criteria that were verified during this phase's implementation
-4. **Worktree cleanup** — run final sweep (see Worktree Cleanup below)
+2. **Verify `spec/tech-debt.md` is current** — open it, confirm the Dashboard `Last updated` line matches the just-finished phase folder name and `Open count` matches the Active section. If subagent-driven-development skipped this step (file missing despite TDs registered, or stale Dashboard), update it now using the rules in `.claude/skills/subagent-driven-development/tech-debt-template.md`. If no debt has ever been registered, the file may legitimately not exist — note that in the summary.
+3. **Create/update summary.md** — write `spec/summary.md` following the template in `.claude/skills/subagent-driven-development/summary-template.md`. Captures current status, ATDD progress, phase history, risks, tech-debt summary (which now points at `spec/tech-debt.md`), and open issues. If summary.md already exists (from a previous phase), append the new phase entry — never overwrite history.
+4. **Update atdd.md** — check off acceptance criteria that were verified during this phase's implementation
+5. **Worktree cleanup** — run final sweep (see Worktree Cleanup below)
+
+### Workflow-Complete Tech-Debt Review
+
+When all atdd.md items are checked AND no `next-step.md` recommends further work, before declaring the workflow complete:
+
+1. **Read `spec/tech-debt.md`** Active section.
+2. **If any P0 or P1 entries remain open**, surface them via `AskUserQuestion`: "All acceptance criteria are checked, but `spec/tech-debt.md` still has N P0/P1 entries open. Options: (a) start a debt-repayment-only planning cycle now, (b) accept the remaining debt and finalize, (c) re-evaluate priority scores (some may have decayed)."
+3. **If only P2/P3 remain**, just acknowledge the open count in the final summary and mark the workflow complete.
+
+This is the lightweight equivalent of SOP-A2-05 (quarterly retro) — it happens at the natural close-of-project point instead of on a calendar cadence.
 
 ## Jumping Between Stages
 
@@ -235,6 +255,7 @@ Rules:
 - Ask if the idea belongs to "Design" or "Implementation" when unclear
 - Spec files under `spec/` are the full-suite design — phasing is planning's job
 - atdd.md is created by grill-me (customer acceptance criteria), refined by design, and checked off during implementation
-- summary.md is created/updated after each phase's implementation completes — captures status, risks, and technical debt
+- summary.md is created/updated after each phase's implementation completes — captures status, risks, and tech-debt pointer (full ledger lives in `spec/tech-debt.md`)
+- `spec/tech-debt.md` is project-lifetime, not stage-bound — created lazily by subagent-driven-development on first registration
 - Remove worktrees after implementation
 - codebase-map.md creation uses the Explore agent

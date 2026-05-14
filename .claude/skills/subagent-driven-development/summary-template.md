@@ -11,7 +11,7 @@ It is a **living document** — append new phase entries, never overwrite histor
 
 ## Current Status
 
-**Phase:** [YYYYMMDD-keyword or "Complete"]
+**Phase:** [YYYY-MM-DDTHH-MM-SS_keyword or "Complete"]
 **Last updated:** [date]
 **ATDD progress:** [checked] / [total] acceptance criteria ([percentage]%)
 
@@ -24,13 +24,13 @@ It is a **living document** — append new phase entries, never overwrite histor
 
 ## Phase History
 
-### YYYYMMDD-keyword — [Phase title]
+### YYYY-MM-DDTHH-MM-SS_keyword — [Phase title]
 **Date:** [completion date]
 **Scope:** [Features / user stories covered]
 **Outcome:** [what was built — 2-3 sentences]
 **Key files changed:** [list of significant files/modules created or modified]
 
-### YYYYMMDD-keyword — [Phase title]
+### YYYY-MM-DDTHH-MM-SS_keyword — [Phase title]
 ...
 
 ## Risks
@@ -41,15 +41,31 @@ It is a **living document** — append new phase entries, never overwrite histor
 
 ## Technical Debt
 
-| Item | Incurred in | Severity | Reason | Remediation |
-|---|---|---|---|---|
-| [description] | [YYYYMMDD-keyword] | High / Medium / Low | [why the shortcut was taken] | [what needs to happen to fix it] |
+Single source of truth: **`spec/tech-debt.md`** (Dashboard + Active + Closed sections, full schema per `.claude/skills/subagent-driven-development/tech-debt-template.md`).
+
+This section is a *summary pointer*, not a duplicate ledger. Cite open count + top items only.
+
+**Open count:** N (P0: N · P1: N · P2: N · P3: N) — see `spec/tech-debt.md` for full detail.
+
+**Inflow / Outflow trend (last 3 phases):**
+
+| Phase | Opened | Closed | Ratio |
+|---|---|---|---|
+| [phase folder] | N | N | N.N |
+| [phase folder] | N | N | N.N |
+| [phase folder] | N | N | N.N |
+
+**Top 3 open by priority score:**
+
+| ID | Summary | Score | Label |
+|---|---|---|---|
+| TD-NNN | [one-line] | N.N | Pn |
 
 ## Open Issues
 
 | Issue | Found in | Blocking? | Notes |
 |---|---|---|---|
-| [description] | [YYYYMMDD-keyword] | Yes / No | [context] |
+| [description] | [YYYY-MM-DDTHH-MM-SS_keyword] | Yes / No | [context] |
 ```
 
 ---
@@ -61,7 +77,7 @@ It is a **living document** — append new phase entries, never overwrite histor
 
 ## Current Status
 
-**Phase:** 20260520-workspace-invitation
+**Phase:** 2026-05-20T14-00-00_workspace-invitation
 **Last updated:** 2026-05-20
 **ATDD progress:** 8 / 23 acceptance criteria (35%)
 
@@ -78,7 +94,7 @@ It is a **living document** — append new phase entries, never overwrite histor
 
 ## Phase History
 
-### 20260512-authentication — Authentication & Tenant Setup
+### 2026-05-12T09-30-00_authentication — Authentication & Tenant Setup
 **Date:** 2026-05-14
 **Scope:** Feature: Authentication (all 3 user stories)
 **Outcome:** Implemented Okta SSO integration with SAML 2.0, JWT token
@@ -91,7 +107,7 @@ login, and RBAC middleware with four roles (owner, admin, member, viewer).
 - `prisma/migrations/001_tenant_user.sql` — tenant and user tables
 - `tests/auth/` — 12 unit tests, 4 integration tests
 
-### 20260520-workspace-invitation — Workspace & Invitation (in progress)
+### 2026-05-20T14-00-00_workspace-invitation — Workspace & Invitation (in progress)
 **Date:** ongoing
 **Scope:** Feature: Workspace Management (3 of 5 stories), Feature: Member Invitation (2 of 4 stories)
 **Outcome:** Workspace CRUD implemented with tenant-scoped isolation.
@@ -113,20 +129,32 @@ expiry not yet implemented.
 
 ## Technical Debt
 
-| Item | Incurred in | Severity | Reason | Remediation |
-|---|---|---|---|---|
-| Hardcoded 7-day invitation expiry | 20260520-workspace-invitation | Low | Simplified for MVP, should be configurable per tenant | Move to tenant settings in future phase |
-| No retry logic on SendGrid email calls | 20260520-workspace-invitation | Medium | Time constraint, happy path only | Add exponential backoff + circuit breaker |
-| RBAC checks duplicated in controller and service layer | 20260512-authentication | Medium | Rushed implementation, both layers check roles independently | Consolidate into middleware-only pattern |
-| Database indexes not optimized | 20260512-authentication | Low | Used Prisma defaults, haven't profiled yet | Run EXPLAIN ANALYZE, add missing indexes |
+Single source of truth: **`spec/tech-debt.md`**.
+
+**Open count:** 4 (P0: 0 · P1: 1 · P2: 2 · P3: 1)
+
+**Inflow / Outflow trend (last 3 phases):**
+
+| Phase | Opened | Closed | Ratio |
+|---|---|---|---|
+| 2026-05-20T14-00-00_workspace-invitation | 3 | 1 | 3.0 |
+| 2026-05-12T09-30-00_authentication | 2 | 0 | ∞ |
+
+**Top 3 open by priority score:**
+
+| ID | Summary | Score | Label |
+|---|---|---|---|
+| TD-003 | payment gateway timeout → retry-with-backoff | 24.0 | P1 |
+| TD-001 | RBAC checks duplicated in controller + service | 12.0 | P2 |
+| TD-002 | Hardcoded 7-day invitation expiry | 6.0 | P2 |
 
 ## Open Issues
 
 | Issue | Found in | Blocking? | Notes |
 |---|---|---|---|
-| Invitation email lands in spam for Gmail users | 20260520-workspace-invitation | No | Need to configure SPF/DKIM for SendGrid domain |
-| Workspace name uniqueness is case-sensitive | 20260520-workspace-invitation | No | "Engineering" and "engineering" are treated as different — should normalize |
-| Prisma client generation adds 3s to cold start | 20260512-authentication | No | Acceptable for now, may need prisma generate optimization for Lambda if we move to serverless |
+| Invitation email lands in spam for Gmail users | 2026-05-20T14-00-00_workspace-invitation | No | Need to configure SPF/DKIM for SendGrid domain |
+| Workspace name uniqueness is case-sensitive | 2026-05-20T14-00-00_workspace-invitation | No | "Engineering" and "engineering" are treated as different — should normalize |
+| Prisma client generation adds 3s to cold start | 2026-05-12T09-30-00_authentication | No | Acceptable for now, may need prisma generate optimization for Lambda if we move to serverless |
 ```
 
 ---

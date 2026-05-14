@@ -6,7 +6,7 @@ A project-agnostic, interactive skill that reviews design spec files (overview.m
 
 **Name:** `arch-review`
 **Trigger phrases:** "review the architecture", "architecture review", "review the design", "design review"
-**Output:** `spec/arch-review.md`
+**Output:** `spec/arch-review/<YYYY-MM-DD HH:MM:SS>.md` (one timestamped file per run, reports accumulate)
 
 ## What It Is / What It Is Not
 
@@ -309,10 +309,10 @@ If the user does not respond or interrupts, note which decisions were left unres
 After full review completion, save to:
 
 ```
-spec/arch-review.md
+spec/arch-review/<YYYY-MM-DD HH:MM:SS>.md
 ```
 
-The saved file is always `spec/arch-review.md` — one review per project, overwritten on re-review.
+Generate the timestamp at save time (`date "+%Y-%m-%d %H:%M:%S"`). Multiple reviews accumulate inside `spec/arch-review/` — each run appends a new file. NEVER overwrite or delete prior reports. Create `spec/arch-review/` if it does not yet exist.
 
 The saved file is a clean, self-contained document — no conversation artifacts.
 

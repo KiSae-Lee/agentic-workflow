@@ -1,5 +1,10 @@
 ## Conventions
 
+### Package Manager
+
+- Use `pnpm` for node.js.
+- Use `uv` for Python.
+
 ### Git
 
 > This convention should be passed to all sub-agents.

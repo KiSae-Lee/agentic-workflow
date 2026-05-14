@@ -354,18 +354,22 @@ If the user does not respond to an AskUserQuestion or interrupts to move on, not
 After the full review is complete (all sections resolved and completion summary displayed), save the entire review result — including scope challenge, all section findings, quality attribute summary matrix, required outputs, completion summary, and unresolved decisions — as a markdown file at:
 
 ```
-spec/arch-review.md
+spec/arch-review/<timestamp>.md
 ```
 
-The saved file is always `spec/arch-review.md` — one review per project, overwritten on re-review.
+Where `<timestamp>` is the current local time formatted as `YYYY-MM-DD HH:MM:SS` (e.g., `spec/arch-review/2026-05-14 09:30:00.md`). Generate the timestamp at save time with `date "+%Y-%m-%d %H:%M:%S"`.
+
+**Important:**
+- Multiple reviews accumulate inside `spec/arch-review/` — each run appends a new file. NEVER overwrite or delete prior reports.
+- Create the `spec/arch-review/` directory if it does not yet exist.
 
 The saved file should be a clean, self-contained document (no conversation artifacts) that a reader can understand without the original interactive session.
 
 ## Auto-Update Spec Files
 
-When invoked from the `design` skill (auto-invocation), after saving arch-review.md, also update the relevant spec files under `spec/` directly:
+When invoked from the `design` skill (auto-invocation), after saving the timestamped report, also update the relevant spec files under `spec/` directly:
 
-1. Incorporate all accepted decisions from the review into the relevant spec files (especially `overview.md` and `data-model.md`)
+1. Incorporate all accepted decisions from the review into the relevant spec files (especially `overview.md` and `tech-docs/data-model.md`)
 2. Add/update sections that were flagged as incomplete or missing
 3. Annotate deferred items in the spec's scope section
 4. Update architecture diagrams if structural changes were accepted

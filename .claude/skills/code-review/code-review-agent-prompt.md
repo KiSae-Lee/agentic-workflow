@@ -30,7 +30,7 @@ digraph review_process {
     rankdir=LR;
     discover [label="DISCOVER\nExplore codebase\nIdentify scope", shape=box, style=filled, fillcolor="#e6ccff"];
     read [label="READ\nAll changed files\nUnderstand intent", shape=box, style=filled, fillcolor="#ccccff"];
-    analyze [label="ANALYZE\nAll 5 dimensions\nEvery criterion", shape=box, style=filled, fillcolor="#ffffcc"];
+    analyze [label="ANALYZE\nAll 6 dimensions\nEvery criterion", shape=box, style=filled, fillcolor="#ffffcc"];
     verify [label="VERIFY\nRun tests\nCheck claims", shape=box, style=filled, fillcolor="#ccffcc"];
     report [label="REPORT\nCategorize issues\nClear verdict", shape=box, style=filled, fillcolor="#ffcccc"];
 
@@ -67,7 +67,7 @@ Read all files in scope. Understand what was built and why.
 
 ### ANALYZE — Apply Every Dimension
 
-Walk through each of the five dimensions below. Check every criterion under each.
+Walk through each of the six dimensions below. Check every criterion under each.
 
 For each issue found:
 - Note the file:line reference
@@ -91,11 +91,11 @@ Write the review report using the Report Template at the end of this document.
 
 Save to: the output path provided by the dispatcher. If no output path is provided, default to `spec/code-review.md`.
 
-When dispatched from subagent-driven-development, the output path will be `spec/YYYYMMDD-keyword/code-review.md` (the current phase directory).
+When dispatched from subagent-driven-development, the output path will be `spec/history/<phase>/code-review.md` (the current phase directory, where `<phase>` is `YYYY-MM-DDTHH-MM-SS_keyword`).
 
 **Create the target directory if it doesn't exist.**
 
-## The Five Review Dimensions
+## The Six Review Dimensions
 
 ### Dimension 1: Architecture Principles
 
@@ -297,7 +297,72 @@ Magic numbers, cryptic names, raw error re-throw, no context
 
 </Bad>
 
-### Dimension 5: Production Readiness
+### Dimension 5: Tech-Debt DoD Compliance
+
+**Key question:** "Is every shortcut in this diff tracked and recoverable?"
+
+This dimension enforces the project's Definition of Done for technical debt per SOP-A2-02 (PR gate) and SOP-A2-07 (deliberate-debt agreement). The schema and lifecycle live in `.claude/skills/subagent-driven-development/tech-debt-template.md`.
+
+**Check:**
+
+- **TODO format compliance.** Every new `TODO`, `FIXME`, or `HACK` comment in the diff MUST reference a tech-debt ID: `// TODO(#TD-NNN): summary`. Bare `TODO: fix later` is a **Critical** issue — block merge.
+- **Referenced TD exists.** For each `(#TD-NNN)` in the diff, verify the matching entry exists in `spec/tech-debt.md` under `## Active` with all required fields populated (Category, Fowler quadrant, Principal, Interest, Blast radius, Priority score, Location, Owner, Repayment target, Registered in, Reason, Remediation sketch). Missing entry → **Critical**. Missing required field → **Important**.
+- **Location field accuracy.** The `Location` field in the TD entry must match the actual code annotation site (`path/to/file:line` ↔ comment location). Mismatch → **Important**.
+- **Deliberate-debt agreement.** If `implementation-report.md` declares deliberate debt (or any new TD entry has quadrant `reckless-deliberate` / `prudent-deliberate`):
+  - The implementation report MUST have a `## Deliberate Debt` section with all 5 fields: reason (specific, not "no time"), repayment target (real date or milestone), repayment TD-NNN, owner, approver. Missing section or vague fields → **Critical**.
+  - The TD entry's Reason field must match the implementation-report rationale. Inconsistency → **Important**.
+- **Boy Scout advisory.** If the diff touches files where `spec/tech-debt.md` lists ≥3 adjacent open TD entries and the implementer closed zero of them, raise an **Important** advisory (not a block) — note the candidates and suggest splitting follow-up work.
+- **Dashboard freshness.** If new TDs were registered this phase, `spec/tech-debt.md` Dashboard must be updated (timestamp matches current phase folder, Open count reflects Active section, Inflow ≥ count of new TDs). Stale dashboard → **Important**.
+- **No phantom IDs.** Every `(#TD-NNN)` in the diff has a matching entry; every new entry has at least one referencing code annotation (or is a `design`/`doc`/`infra` category entry where code annotation may not apply — note in entry). Phantom code reference → **Critical**. Phantom entry → **Minor**.
+
+<Good>
+
+```typescript
+// TODO(#TD-042): replace polling with webhook once provider exposes one
+const result = await pollUntilReady(jobId);
+```
+
+```markdown
+# In spec/tech-debt.md ## Active section:
+
+### TD-042 — replace job polling with webhook
+| Category | code |
+| Fowler quadrant | prudent-deliberate |
+| Principal (cost) | 2 MD |
+| Interest rate | 5% (polling adds ~30ms per check, ~120 checks/day per active job) |
+| Blast radius | Low |
+| Priority score | (5 × 1) ÷ 2 = 2.5 |
+| Priority label | P3 |
+| Location | src/jobs/poller.ts:88 |
+| Owner | self |
+| Repayment target | when provider ships webhook API |
+| Registered in | 2026-05-14T09-30-00_jobs |
+
+**Reason:** Provider has webhook on roadmap but no ETA. Polling at 5s intervals is acceptable given current job volume (<50 concurrent).
+**Remediation sketch:** Subscribe to webhook, remove pollUntilReady, retain test fixtures.
+```
+
+Annotation + ledger entry consistent, schema fully populated, rationale concrete.
+
+</Good>
+
+<Bad>
+
+```typescript
+// TODO: fix this later
+const result = await pollUntilReady(jobId);
+```
+
+```typescript
+// TODO(#TD-999): swap polling
+// ↑ No matching entry in spec/tech-debt.md
+```
+
+Bare TODO blocks merge. Phantom ID blocks merge.
+
+</Bad>
+
+### Dimension 6: Production Readiness
 
 **Key question:** "Would I be comfortable deploying this on a Friday?"
 
@@ -397,7 +462,7 @@ No validation, SQL injection, no logging, no error handling, no types
 - Tests only cover happy path
 - Giant functions (>50 lines of logic)
 - Commented-out code left in
-- TODO/FIXME without issue tracking
+- TODO/FIXME/HACK without `(#TD-NNN)` reference (see Dimension 5)
 - Catch-all error handling (`catch (e) {}`)
 - New dependencies without justification
 - Copy-pasted code blocks
@@ -418,6 +483,7 @@ Before submitting your review:
 - [ ] Checked Documentation dimension
 - [ ] Checked Test Quality dimension
 - [ ] Checked Maintainability dimension
+- [ ] Checked Tech-Debt DoD Compliance dimension
 - [ ] Checked Production Readiness dimension
 - [ ] Ran tests and verified they pass
 - [ ] Every issue has file:line reference
@@ -425,7 +491,7 @@ Before submitting your review:
 - [ ] Severity classifications are accurate (not everything is Critical)
 - [ ] Acknowledged specific strengths (not generic praise)
 - [ ] Gave clear verdict with reasoning
-- [ ] Dimension Summary table filled for all 5 dimensions
+- [ ] Dimension Summary table filled for all 6 dimensions
 - [ ] Report saved to the specified output path (default: `spec/code-review.md`)
 
 Can't check all boxes? You skipped part of the review. Go back.
@@ -512,6 +578,7 @@ _None found._ (delete if issues exist)
 | Documentation Quality | {pass/concerns/fail} | {one-line summary} |
 | Test Quality | {pass/concerns/fail} | {one-line summary} |
 | Maintainability | {pass/concerns/fail} | {one-line summary} |
+| Tech-Debt DoD Compliance | {pass/concerns/fail} | {one-line summary} |
 | Production Readiness | {pass/concerns/fail} | {one-line summary} |
 
 ## Recommendations

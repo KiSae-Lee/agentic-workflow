@@ -3,9 +3,10 @@
 Templates with few-shot examples for each spec file. The `design` skill references this file when drafting specs under `spec/`.
 
 **Rules:**
-- **Always create**: `glossary.md`, `constraints.md`, `architecture-decisions.md`, `overview.md`, `non-functional-requirements.md`, `use-cases.md`, `flows.md`
-- **Create when applicable**: `data-model.md` (persistence), `api-design.md` (API), `deployment.md` (infra), `ui/` (frontend)
-- **Add custom files as needed**: e.g., `security-model.md`, `event-bus.md`
+- **Always create at the top of `spec/`**: `glossary.md`, `architecture-decisions.md`, `overview.md`, `flows.md`
+- **Always create under `spec/tech-docs/`**: `constraints.md`, `non-functional-requirements.md`, `use-cases.md`
+- **Create when applicable under `spec/tech-docs/`**: `data-model.md` (persistence), `api-design.md` (API), `deployment.md` (infra), `ui/` (frontend)
+- **Add custom files as needed under `spec/tech-docs/`**: e.g., `security-model.md`, `event-bus.md`
 - **Use mermaid** for all diagrams
 - **Each file must be self-contained** — readable on its own
 - **Reference atdd.md Features** — spec files should trace back to the Features defined in atdd.md

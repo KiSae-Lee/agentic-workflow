@@ -253,9 +253,13 @@ If the user does not respond to an AskUserQuestion or interrupts to move on, not
 After the full review is complete (all sections resolved and completion summary displayed), save the entire review result — including scope challenge, all section findings, required outputs, completion summary, and unresolved decisions — as a markdown file at:
 
 ```
-spec/sci-review.md
+spec/sci-review/<timestamp>.md
 ```
 
-The saved file is always `spec/sci-review.md` — one review per project, overwritten on re-review.
+Where `<timestamp>` is the current local time formatted as `YYYY-MM-DD HH:MM:SS` (e.g., `spec/sci-review/2026-05-14 09:30:00.md`). Generate the timestamp at save time with `date "+%Y-%m-%d %H:%M:%S"`.
+
+**Important:**
+- Multiple reviews accumulate inside `spec/sci-review/` — each run appends a new file. NEVER overwrite or delete prior reports.
+- Create the `spec/sci-review/` directory if it does not yet exist.
 
 The saved file should be a clean, self-contained document (no conversation artifacts) that a reader can understand without the original interactive session.

@@ -58,6 +58,7 @@ _None found._ (delete if issues exist)
 | Documentation Quality | {pass/concerns/fail} | {one-line summary} |
 | Test Quality | {pass/concerns/fail} | {one-line summary} |
 | Maintainability | {pass/concerns/fail} | {one-line summary} |
+| Tech-Debt DoD Compliance | {pass/concerns/fail} | {one-line summary} |
 | Production Readiness | {pass/concerns/fail} | {one-line summary} |
 
 ## Recommendations

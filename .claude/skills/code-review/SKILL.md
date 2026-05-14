@@ -5,7 +5,7 @@ description: Use when reviewing code changes or codebase quality for production 
 
 # Code Review
 
-Dispatch a code-reviewer subagent to review code changes across five dimensions.
+Dispatch a code-reviewer subagent to review code changes across six dimensions.
 
 **Announce at start**: "I'm using the code-review skill."
 
@@ -20,6 +20,7 @@ Before dispatching the review subagent, read these rules and include relevant se
 | `.claude/skills/control-tower/rules/DOCUMENTATION.md` | Doc standards to check in reviewed code |
 | `.claude/skills/control-tower/rules/OBSERVABILITY.md` | Logging and tracing standards for production readiness |
 | `.claude/skills/control-tower/rules/KEEP_IN_MIND.md` | Interface design, test quality, mocking boundaries |
+| `.claude/skills/subagent-driven-development/tech-debt-template.md` | Schema + lifecycle the Tech-Debt DoD Compliance dimension (Dimension 5) enforces |
 
 **Procedure:** Read all listed rule files. Pass relevant excerpts to the code-review subagent as context.
 
@@ -32,7 +33,7 @@ Before dispatching the review subagent, read these rules and include relevant se
    - Prompt: Read and include the full contents of `./code-review-agent-prompt.md`
    - Provide the subagent with: review scope, commit/branch info, file list
 3. The subagent performs: DISCOVER -> READ -> ANALYZE -> VERIFY -> REPORT
-4. The subagent saves the report to `spec/code-review.md`
+4. The subagent saves the report to the path provided by the dispatcher; default `spec/code-review.md` when called standalone, `spec/history/<phase>/code-review.md` when called from `subagent-driven-development`
 5. Report the assessment summary back to the user (verdict + issue counts only)
 
 ## When to Use

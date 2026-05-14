@@ -32,15 +32,54 @@ Task tool (general-purpose):
     1. Implement exactly what the task specifies
     2. Write tests (following TDD if task says to)
     3. Verify implementation works
-    4. Commit your work
-    5. Self-review (see below)
-    6. Report back
+    4. Register any tech debt you incur or discover (see Tech Debt section below)
+    5. Commit your work
+    6. Self-review (see below)
+    7. Report back
 
     Work from: [directory]
 
     ## Conventions
 
     Follow `.claude/skills/control-tower/rules/CONVENTIONS.md`.
+
+    ## Tech Debt Context (injected by dispatcher)
+
+    **Assigned ID range:** [e.g. `TD-040` through `TD-049` — use ONLY these IDs for new debt in this task]
+    **Adjacent open debt (Boy Scout candidates):** [e.g. `TD-017` at `src/payment/gateway.go:88`; or "none"]
+    **Approver for deliberate debt:** [defaults to the human user — never yourself]
+
+    ## Tech Debt Convention
+
+    **The schema, lifecycle, and update rules are defined in `.claude/skills/subagent-driven-development/tech-debt-template.md`.** Read it before reporting debt. Summary of what you MUST do:
+
+    ### Registering new debt
+
+    Trigger: you take a shortcut in code (add `TODO`/`FIXME`/`HACK`), OR you discover a non-code gap (design coupling, missing doc, brittle infra setup) that someone will pay interest on later.
+
+    1. **Pick the next ID** from your assigned range only (see "Tech Debt Context" above). Start at the lowest; if you register multiple debts, increment within the range. Do NOT pick IDs outside the assigned range — that causes collisions with parallel implementers.
+    2. **If category is `code` — annotate code in the SOP-A2-01 format.** Bare TODOs without an ID will fail code review:
+       ```
+       // TODO(#TD-042): swap polling for webhook once provider supports it
+       // FIXME(#TD-017): off-by-one on empty-list edge case
+       // HACK(#TD-029): hardcoded retry count, lift to config in payment-v2
+       ```
+       **If category is `design` / `doc` / `infra`** — no code annotation is required; the `Location` field in the entry names the component, doc, or system instead of a file:line. Code review will not flag absence of annotation for these categories.
+    3. **Do NOT modify `spec/tech-debt.md` directly.** Parallel worktrees would conflict on that file. Instead, include the full entry text in your report (see Report Format below). The dispatcher writes `spec/tech-debt.md` at phase finalization, after all worktrees have merged.
+    4. **Deliberate debt extra requirement.** If the Fowler quadrant is `reckless-deliberate` or `prudent-deliberate`, you are taking debt *on purpose*. Make sure your entry's `Reason` field is concrete (not "no time") and `Repayment target` is a real date or milestone. Report `Deliberate debt taken: yes` so the dispatcher includes a `## Deliberate Debt` section in `implementation-report.md` per SOP-A2-07 (the dispatcher will list the approver — never use your own name).
+
+    ### Boy Scout rule
+
+    "Adjacent open debt" above lists open TD entries near files you're touching. While completing your task, **try to close ≥1 adjacent debt** if it fits within ~30 minutes of extra work. Closing means: fix the code so the debt no longer applies, remove any `// TODO(#TD-NNN)` annotation (skip this step if it's a `design`/`doc`/`infra` entry with no code annotation), and report it in the "Closed" section of your report with a 1-sentence Outcome. The dispatcher moves the entry from Active to Closed in `spec/tech-debt.md`.
+
+    Do not exceed 30 minutes on Boy Scout cleanup — if it's bigger, leave it for a dedicated repayment phase.
+
+    ### Forbidden
+
+    - Bare `TODO`, `FIXME`, `HACK` comments without `(#TD-NNN)` — code review will block.
+    - Inventing fake IDs (outside your assigned range or referencing TD-NNN that doesn't exist after merge) — code review will block.
+    - Directly editing `spec/tech-debt.md` — write nothing to that file; it's the dispatcher's responsibility.
+    - Self-approval on deliberate debt — the approver must be someone other than you (defaults to the human user).
 
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
@@ -77,6 +116,30 @@ Task tool (general-purpose):
     - What you implemented
     - What you tested and test results
     - Files changed
+    - **Tech debt summary** (the dispatcher uses this to update `spec/tech-debt.md`):
+      - **Opened** — for each TD-NNN you registered, give the full entry in this exact format:
+        ```
+        TD-NNN — <one-line summary>
+        Category: code | design | doc | infra
+        Fowler quadrant: reckless-deliberate | reckless-inadvertent | prudent-deliberate | prudent-inadvertent
+        Principal: N MD
+        Interest rate: N% (<observed or estimated basis>)
+        Blast radius: High | Medium | Low
+        Priority score: (Interest × RiskWeight) ÷ Principal = N.N
+        Priority label: P0 | P1 | P2 | P3
+        Location: path:line (or component name)
+        Owner: self
+        Repayment target: YYYY-MM-DD | milestone | unscheduled
+        Reason: <concrete reason>
+        Remediation sketch: <1-3 sentences>
+        ```
+      - **Closed** — for each TD-NNN you closed via Boy Scout rule:
+        ```
+        TD-NNN — <original summary>
+        Commit: <hash>
+        Outcome: <1-2 sentences on what changed>
+        ```
+      - **Deliberate debt taken?** yes / no (if yes: list TD-NNN; confirm Reason and Repayment target are concrete)
     - Self-review findings (if any)
     - Any issues or concerns
 
